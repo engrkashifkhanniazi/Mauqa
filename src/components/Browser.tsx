@@ -124,8 +124,10 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
             </section>
 
             <div className="alert" id="alerts"><div><h3>Never miss a closing date</h3><p>Get an email when a new advertisement matches your search. No account needed.</p></div>
-              <form onSubmit={(e) => { e.preventDefault(); setMsg("Preview only: email alerts switch on once the backend is live."); }}>
-                <label className="sr" htmlFor="em">Email</label><input id="em" type="email" placeholder="you@example.com" required /><button className="go" type="submit">Notify me</button></form></div>
+              <form onSubmit={async (e) => { e.preventDefault(); const em = (e.currentTarget.elements.namedItem("em") as HTMLInputElement).value; setMsg("Sending...");
+                try { const r = await fetch("/api/alerts", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: em, query: { q: q || undefined, province: pv || undefined, bps: bp || undefined } }) }); const d = await r.json();
+                  setMsg(r.ok ? (d.emailSent ? "Check your inbox to confirm your alert." : d.note ?? "Saved.") : d.error ?? "Something went wrong."); } catch { setMsg("Network error. Try again."); } }}>
+                <label className="sr" htmlFor="em">Email</label><input id="em" name="em" type="email" placeholder="you@example.com" required /><button className="go" type="submit">Notify me</button></form></div>
             <p className="nt" role="status" style={{ margin: "10px 4px 0" }}>{msg}</p>
           </div>
         </div>
