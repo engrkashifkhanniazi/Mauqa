@@ -88,13 +88,13 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
 
         <div className="wrap main">
           <aside className="rail" aria-label="Filters">
-            <fieldset style={{ border: 0, padding: 0, margin: 0 }}><legend><h3 style={{ margin: 0 }}>Closing</h3></legend>
+            <fieldset style={{ border: 0, padding: 0, margin: 0 }}><legend className="rh">Closing</legend>
               {[[0, "Any time"], [10, "Within 10 days"], [21, "Within 3 weeks"]].map(([v, l]) => <label key={v} className="opt"><input type="radio" name="cl" checked={cl === v} onChange={() => setCl(v as number)} />{l}</label>)}
             </fieldset>
-            <fieldset style={{ border: 0, padding: 0, margin: 0 }}><legend><h3 style={{ margin: 0 }}>Source</h3></legend>
+            <fieldset style={{ border: 0, padding: 0, margin: 0 }}><legend className="rh">Source</legend>
               {ALL_SOURCES.map((s) => <label key={s} className="opt" style={cv(s)}><input type="checkbox" checked={src.includes(s)} onChange={(e) => setSrc((x) => e.target.checked ? [...x, s] : x.filter((y) => y !== s))} /><span className="sw" />{s}<span className="c">{count(s)}</span></label>)}
             </fieldset>
-            <div><h3>Show</h3><label className="opt"><input type="checkbox" checked={onlySaved} onChange={(e) => setOnlySaved(e.target.checked)} />Saved jobs only</label></div>
+            <div><span className="rh">Show</span><label className="opt"><input type="checkbox" checked={onlySaved} onChange={(e) => setOnlySaved(e.target.checked)} />Saved jobs only</label></div>
             <button className="rs" type="button" onClick={reset}>Clear filters</button>
           </aside>
 

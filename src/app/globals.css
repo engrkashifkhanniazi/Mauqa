@@ -89,7 +89,8 @@ dialog{border:0;padding:0;background:transparent;max-width:none;max-height:none;
 .skip{position:absolute;left:8px;top:-60px;background:#fff;color:#0A2620;padding:10px 14px;border-radius:10px;z-index:60}.skip:focus{top:8px}
 .nb.h{display:inline-block}
 .sheet:focus{outline:0}
-.ver{font-weight:700}.smp{opacity:.85}
+.ver,.smp{font-weight:700}
 .rtl{direction:rtl}
 html[lang="ur"] body{font-family:"Noto Nastaliq Urdu",var(--body);line-height:2}
 html[lang="ur"] .card h3,html[lang="ur"] .ad h3{line-height:1.8}
+.rail h3,.rail .rh{font:600 12px var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 6px;display:block}
