@@ -1,5 +1,5 @@
 name: ingest-official
-on: { schedule: [{ cron: "7 */3 * * *" }], workflow_dispatch: {} }
+on: { schedule: [{ cron: "7 */3 * * *" }], workflow_dispatch: { inputs: { dry: { description: "dry run (no DB writes)", default: "false" } } } }
 concurrency: ingest
 jobs:
   run:
@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
-      - run: npm run worker
+      - run: npm run worker -- ${{ github.event.inputs.dry == 'true' && '--dry' || '' }}
       - name: Health check
         run: |
           npx tsx workers/health.ts 2> health.txt || { gh issue create --title "Rozgar Desk source health alert" --body "$(cat health.txt)" || true; }
