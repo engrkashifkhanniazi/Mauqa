@@ -9,6 +9,7 @@ import { slugify } from "../src/pipeline/normalise";
 import { extractFromImage } from "../src/pipeline/extract";
 import { ocrPdf } from "../src/pipeline/ocr";
 import { parseFpscAd } from "../src/parsers/fpscPdf";
+import { extractPdfPosts, BudgetStop } from "../src/pipeline/paperAi";
 import type { ParseResult, ParsedJob } from "../src/parsers/types";
 
 const SOURCES: Record<string, { name: string; url: string; parse: (h: string) => ParseResult }> = {
@@ -39,6 +40,18 @@ async function runSource(key: string) {
       if (parsed.emptyState) errors.push({ type: "empty_state", message: "source reports no active advertisements" });
       const expanded: ParsedJob[] = [];
       for (const b of parsed.items) {
+        if (b.expand === "kppsc-pdf") {
+          try {
+            const pdf = await politeFetch(b.officialUrl, { binary: true });
+            if (rows(await db().execute(sql`select 1 from raw_items where content_hash = ${pdf.hash!}`)).length > 0) { errors.push({ type: "info", message: `KPPSC ad PDF unchanged (${b.externalId})` }); continue; }
+            if (!process.env.ANTHROPIC_API_KEY) { errors.push({ type: "info", message: `KPPSC PDF needs ANTHROPIC_API_KEY; kept for review (${b.externalId})` }); expanded.push(b); continue; }
+            const posts = await extractPdfPosts(pdf.body!);
+            if (!posts.length) { errors.push({ type: "ai", message: `no posts read from ${b.officialUrl}; kept for review` }); expanded.push(b); continue; }
+            posts.forEach((p, i) => expanded.push({ sourceKey: "KPPSC", externalId: `${b.externalId}/${i + 1}`, title: p.title, department: p.department ?? undefined, bps: p.bps, lastDate: p.last_date, officialUrl: b.officialUrl, applyUrl: b.applyUrl, files: b.files, needsAi: false, fieldsConfirmedAgainstSource: false, vacancies: p.vacancies, city: p.city, education: p.education, aiRead: true, aiConfidence: p.confidence }));
+            if (!DRY) await db().execute(sql`insert into raw_items (source_id, url, content_hash, kind) values (${Number(sr.id)}, ${b.officialUrl}, ${pdf.hash!}, 'pdf') on conflict (content_hash) do nothing`);
+          } catch (e) { errors.push({ type: e instanceof BudgetStop ? "budget" : "pdf", message: String(e) }); expanded.push(b); }
+          continue;
+        }
         if (b.expand !== "fpsc-pdf") { expanded.push(b); continue; }
         try {
           const pdf = await politeFetch(b.officialUrl, { binary: true });
@@ -62,13 +75,13 @@ async function runSource(key: string) {
         if (it.needsAi && !DRY) { try { const img = await politeFetch(it.officialUrl, { binary: true }); facts = await extractFromImage(img.body!, it.officialUrl); } catch (e) { errors.push({ type: "ai", message: String(e) }); } }
         const f2 = facts && "facts" in facts ? facts : null;
         const lastDate = it.lastDate ?? f2?.facts.last_date ?? null;
-        const d = evaluate({ ocrConflict: it.ocrConflict, title: it.title, officialUrl: it.officialUrl, lastDate, aiUsed: !!f2, aiConfidence: f2?.facts.confidence, fieldsConfirmedAgainstSource: it.fieldsConfirmedAgainstSource });
+        const d = evaluate({ ocrConflict: it.ocrConflict, title: it.title, officialUrl: it.officialUrl, lastDate, aiUsed: !!f2 || !!it.aiRead, aiConfidence: it.aiRead ? it.aiConfidence : f2?.facts.confidence, fieldsConfirmedAgainstSource: it.fieldsConfirmedAgainstSource });
         if (f2 && !f2.facts.is_recruitment_ad) d.action = "reject";
         fresh++; if (DRY) continue;
         const slug = slugify(it.title, it.externalId);
         const ins = rows(await db().execute(sql`insert into jobs (slug, title, department, source_id, province, city, bps, vacancies, education, age_min, age_max, last_date, status, confidence, official_url, apply_url, dedupe_key, content_hash, verified_at)
-          values (${slug}, ${it.title}, ${f2?.facts.department ?? it.department ?? null}, ${Number(sr.id)}, ${f2?.facts.province ?? null}, ${f2?.facts.city ?? it.city ?? null}, ${f2?.facts.bps ?? it.bps ?? null}, ${f2?.facts.vacancies ?? it.vacancies ?? null}, ${f2?.facts.education ?? null}, ${f2?.facts.age_min ?? it.ageMin ?? null}, ${f2?.facts.age_max ?? it.ageMax ?? null},
-          ${lastDate}, ${d.action === "publish" ? "published" : d.action === "reject" ? "rejected" : "quarantined"}, ${f2?.facts.confidence ?? null}, ${it.officialUrl}, ${it.applyUrl ?? null}, ${slug + "|" + lastDate}, ${jobHash}, ${d.verified ? sql`now()` : null})
+          values (${slug}, ${it.title}, ${f2?.facts.department ?? it.department ?? null}, ${Number(sr.id)}, ${f2?.facts.province ?? null}, ${f2?.facts.city ?? it.city ?? null}, ${f2?.facts.bps ?? it.bps ?? null}, ${f2?.facts.vacancies ?? it.vacancies ?? null}, ${f2?.facts.education ?? it.education ?? null}, ${f2?.facts.age_min ?? it.ageMin ?? null}, ${f2?.facts.age_max ?? it.ageMax ?? null},
+          ${lastDate}, ${d.action === "publish" ? "published" : d.action === "reject" ? "rejected" : "quarantined"}, ${(it.aiRead ? it.aiConfidence : f2?.facts.confidence) ?? null}, ${it.officialUrl}, ${it.applyUrl ?? null}, ${slug + "|" + lastDate}, ${jobHash}, ${d.verified ? sql`now()` : null})
           on conflict (slug) do nothing returning id`))[0];
         if (ins) { for (const fl of it.files) await db().execute(sql`insert into job_files (job_id, label, url, kind) values (${Number(ins.id)}, ${fl.label}, ${fl.url}, ${fl.kind})`);
           if (d.action === "quarantine") await db().execute(sql`insert into review_queue (job_id, reason) values (${Number(ins.id)}, ${d.reasons.join("; ")})`); }

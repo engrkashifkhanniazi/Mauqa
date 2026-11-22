@@ -58,3 +58,21 @@ export async function extractPageAds(page: Buffer): Promise<PaperAdT[]> {
   }
   return out;
 }
+
+const PDF_PROMPT = `This PDF is a Pakistani government recruitment advertisement (it may be a scan). List EVERY post advertised in it.
+Return ONLY a JSON array. Each item: {"title": post name in English, "department": hiring department/organisation in English, "vacancies": number of posts for that item or null, "bps": integer 1-22 or null, "education": minimum qualification in short English or null, "city": string or null, "province": string or null, "last_date": "YYYY-MM-DD" last date to apply or null, "is_government_recruitment": true, "confidence": 0-1}.
+Write facts in your own short words, do not copy paragraphs. Use null when not printed. Never guess a date. If it is not a recruitment ad, return [].`;
+
+/** Reads a recruitment-ad PDF with Claude (PDF input). Returns facts only; the PDF is not stored. */
+export async function extractPdfPosts(pdf: Uint8Array): Promise<PaperAdT[]> {
+  if (pdf.length > 20 * 1024 * 1024) return [];
+  if (!(await spent() + 0.05 < cap())) throw new BudgetStop("monthly AI cap reached");
+  const client = new Anthropic();
+  const res = await client.messages.create({ model: MODEL, max_tokens: 4000, messages: [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: Buffer.from(pdf).toString("base64") } }, { type: "text", text: PDF_PROMPT }] }] });
+  const cost = costUsd(MODEL, res.usage.input_tokens, res.usage.output_tokens);
+  await db().execute(sql`insert into ai_calls (content_hash, model, tokens_in, tokens_out, cost_usd, ok) values (${sha256(pdf)}, ${MODEL}, ${res.usage.input_tokens}, ${res.usage.output_tokens}, ${cost}, true)`);
+  const arr = json(res.content.map((b) => (b.type === "text" ? b.text : "")).join(""), "[", "]");
+  const out: PaperAdT[] = [];
+  if (Array.isArray(arr)) for (const a of arr) { const p = PaperAd.safeParse(a); if (p.success && p.data.is_government_recruitment) out.push(p.data); }
+  return out;
+}

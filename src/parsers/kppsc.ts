@@ -15,7 +15,7 @@ export function parseKppsc(html: string): ParseResult {
     let url: string; try { url = new URL(href, BASE).toString(); } catch { return; }
     const m = label.match(/advertisement\s*no\.?\s*([\w/.-]+)/i);
     links.push({ sourceKey: "KPPSC", externalId: m?.[1] ?? label.slice(0, 40), title: label, bps: parseBps(label), lastDate: null, officialUrl: url,
-      files: [{ label: "Advertisement", url, kind: "advertisement" }], needsAi: false, fieldsConfirmedAgainstSource: false });
+      files: [{ label: "Advertisement", url, kind: "advertisement" }], needsAi: false, fieldsConfirmedAgainstSource: false, expand: /\.pdf(\?|$)/i.test(url) ? "kppsc-pdf" : undefined });
   });
   if (links.length) return { items: links, emptyState: false, broken: false };
   if (EMPTY.test(text)) return { items: [], emptyState: true, broken: false };
