@@ -31,13 +31,13 @@ export async function robotsAllows(url: string): Promise<boolean> {
   return !rules || !rules.some((p) => u.pathname.startsWith(p));
 }
 export interface FetchResult { status: number; notModified: boolean; body?: Uint8Array; text?: string; etag?: string | null; hash?: string; contentType?: string | null }
-export async function politeFetch(url: string, opts: { etag?: string | null; binary?: boolean } = {}): Promise<FetchResult> {
+export async function politeFetch(url: string, opts: { etag?: string | null; binary?: boolean; referer?: string } = {}): Promise<FetchResult> {
   if (!(await robotsAllows(url))) throw new Error(`robots.txt disallows ${url}`);
   const host = new URL(url).host; let delay = 2000;
   for (let attempt = 0; attempt < 3; attempt++) {
     await throttle(host);
     try {
-      const r = await fetch(url, { headers: { "user-agent": UA, ...(opts.etag ? { "if-none-match": opts.etag } : {}) }, signal: AbortSignal.timeout(30000), redirect: "follow" });
+      const r = await fetch(url, { headers: { "user-agent": UA, ...(opts.referer ? { referer: opts.referer } : {}), ...(opts.etag ? { "if-none-match": opts.etag } : {}) }, signal: AbortSignal.timeout(30000), redirect: "follow" });
       if (r.status === 304) return { status: 304, notModified: true };
       if (r.status === 429 || r.status >= 500) { await sleep(delay); delay *= 2; continue; }
       if (r.status === 401 || r.status === 403) throw new Error(`access refused (${r.status}); not bypassing`);

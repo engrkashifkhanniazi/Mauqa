@@ -22,7 +22,7 @@ const ddmmyyyy = (off: number) => { const t = new Date(Date.now() + 5 * 3600e3 -
 
 async function main() {
   if (process.argv.includes("--probe")) { // connectivity check only: no AI, no DB
-    for (const off of [0, 1]) { const d = ddmmyyyy(off); try { const r = await politeFetch(PAPERS[0].imageUrl(d, 9), { binary: true }); console.log(`probe ${d} page9 http=${r.status} bytes=${r.body?.length} type=${r.contentType}`); } catch (e) { console.log(`probe ${d} error:`, (e as Error).message); } }
+    for (const off of [0, 1]) { const d = ddmmyyyy(off); try { const r = await politeFetch(PAPERS[0].imageUrl(d, 9), { binary: true, referer: PAPERS[0].pageUrl(d, 9) }); console.log(`probe ${d} page9 http=${r.status} bytes=${r.body?.length} type=${r.contentType}`); } catch (e) { console.log(`probe ${d} error:`, (e as Error).message); } }
     return;
   }
   if (!process.env.ANTHROPIC_API_KEY) { console.log("newspaper pipeline waiting: ANTHROPIC_API_KEY is not set yet. Nothing to do."); return; }
@@ -32,7 +32,7 @@ async function main() {
       const d = ddmmyyyy(off); let pages = 0, adsFound = 0, published = 0, queued = 0;
       for (let n = 1; n <= MAX_PAGES; n++) {
         let img: Uint8Array | undefined;
-        try { const r = await politeFetch(paper.imageUrl(d, n), { binary: true }); if (r.status !== 200 || !r.body || !/image/i.test(r.contentType ?? "")) break; img = r.body; } catch { break; }
+        try { const r = await politeFetch(paper.imageUrl(d, n), { binary: true, referer: paper.pageUrl(d, n) }); if (r.status !== 200 || !r.body || !/image/i.test(r.contentType ?? "")) break; img = r.body; } catch { break; }
         pages++;
         const hash = sha256(img);
         if (rows(await db().execute(sql`select 1 from raw_items where content_hash = ${hash}`)).length) continue; // page already processed
