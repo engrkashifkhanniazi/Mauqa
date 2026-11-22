@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions: { issues: write, contents: read }
-    env: { DATABASE_URL: "${{ secrets.DATABASE_URL }}", ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}", CLAUDE_MONTHLY_BUDGET_USD: "${{ secrets.CLAUDE_MONTHLY_BUDGET_USD }}", GH_TOKEN: "${{ github.token }}" }
+    env: { NODE_EXTRA_CA_CERTS: "${{ github.workspace }}/certs/gogetssl-rsa-dv-ssl-ca-2.pem", DATABASE_URL: "${{ secrets.DATABASE_URL }}", ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}", CLAUDE_MONTHLY_BUDGET_USD: "${{ secrets.CLAUDE_MONTHLY_BUDGET_USD }}", GH_TOKEN: "${{ github.token }}" }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
