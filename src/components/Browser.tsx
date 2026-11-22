@@ -105,7 +105,7 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
               <div className="grid">
                 {gov.length ? gov.map((j) => (
                   <article key={j.id} className="card" style={cv(j.source)}>
-                    <div className="cap"><span>{j.source} · {j.province}</span><span className={j.verified ? "ver" : "smp"}>{j.verified ? "Verified" : "Sample"}</span></div>
+                    <div className="cap"><span>{j.source} · {j.province}</span><span className={j.verified ? "ver" : "smp"}>{j.verified ? "Verified" : sample ? "Sample" : "Unverified"}</span></div>
                     <div className="cb"><div><h3><Ob j={j} /></h3><div className="org">{j.department}</div></div>
                       <div className="meta"><span>{j.city}</span><span>{j.vacancies} vacancies</span><span>Last date {fd(j.lastDate)}</span></div>
                       <div className="ft"><span style={{ display: "flex", gap: 8, alignItems: "center" }}><span className="bps">BPS-{j.bps}</span><Due j={j} /></span><Sv j={j} /></div></div>
@@ -137,7 +137,7 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
       <dialog ref={dlg} aria-labelledby="dT" onClose={() => { setOpen(null); lastFocus.current?.focus(); }} onClick={(e) => { if (!(e.target as HTMLElement).closest(".sheet")) dlg.current?.close(); }}>
         {open && <div className="sheet">
           <header><h2 id="dT">{open.title}</h2><button ref={closeBtn} className="sv" type="button" aria-label="Close" onClick={() => dlg.current?.close()}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button></header>
-          <div className="bd"><p className="nt">{open.department}.{open.verified ? "" : " Sample listing for design review."}</p>
+          <div className="bd"><p className="nt">{open.department}.{open.verified ? "" : sample ? " Sample listing for design review." : " Not yet verified. Confirm every detail on the official advertisement."}</p>
             <div className="fc">{[["Last date", fd(open.lastDate)], ["Time left", `${left(open)} days`], ["Pay scale", `BPS-${open.bps}`], ["Vacancies", String(open.vacancies)], ["Education", open.education], ["Age", open.age], ["Location", open.city], ["Source", open.source]].map(([k, v]) => <div key={k}><small>{k}</small><b>{v}</b></div>)}</div>
             {open.verified && <div className="vf"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /><path d="M8.5 12.5l2.5 2.5 4.5-5" /></svg><div><b>Checked against the official advertisement.</b><br />Details match the {open.source} notice. Confirm eligibility in the original ad before applying.</div></div>}
             <div><h3 style={{ fontSize: 17, marginBottom: 10 }}>How to apply</h3><ol><li>Read the eligibility in the official advertisement.</li><li>Apply on the {open.source} portal before the last date.</li><li>Keep documents and fee receipt ready.</li></ol></div>

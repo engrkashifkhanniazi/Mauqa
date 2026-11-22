@@ -7,7 +7,7 @@ const fd = (d: string) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-G
 type P = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: P): Promise<Metadata> {
   const j = await getJobBySlug((await params).slug); if (!j) return { title: "Job not found" };
-  return { title: `${j.title}, ${j.department}`, description: `${j.title} at ${j.department}. ${j.vacancies ?? ""} vacancies. Last date ${fd(j.lastDate)}. Source: ${j.source}.`, alternates: { canonical: `${SITE}/jobs/${j.slug}` }, openGraph: { title: j.title, type: "article", url: `${SITE}/jobs/${j.slug}` }, robots: j.status === "sample" ? { index: false } : undefined };
+  return { title: `${j.title}, ${j.department}`, description: `${j.title}${j.department ? " at " + j.department : ""}. ${j.vacancies ? j.vacancies + " vacancies. " : ""}Last date ${fd(j.lastDate)}. Source: ${j.source}. Confirm details on the official advertisement.`, alternates: { canonical: `${SITE}/jobs/${j.slug}` }, openGraph: { title: j.title, type: "article", url: `${SITE}/jobs/${j.slug}` }, robots: j.status === "sample" ? { index: false } : undefined };
 }
 export default async function JobPage({ params }: P) {
   const j = await getJobBySlug((await params).slug); if (!j) notFound();
