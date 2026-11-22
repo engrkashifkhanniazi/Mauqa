@@ -1,0 +1,3 @@
+import { politeFetch } from "../src/lib/fetcher";
+const URLS = ["https://www.nts.org.pk/new/projectsnew.php","https://www.ots.org.pk/projects.php","https://www.njp.gov.pk/jobs/live","https://www.njp.gov.pk/jobs/10663","https://www.pts.org.pk/Projects/","https://etea.edu.pk/index","https://www.ats.org.pk/"];
+(async () => { for (const u of URLS) { try { const r: any = await politeFetch(u); const b = typeof r === "string" ? r : r?.body ?? r?.text ?? JSON.stringify(r).slice(0,200); console.log("OK", u, r?.status ?? "", String(b).length, String(b).replace(/\s+/g," ").slice(0,150)); } catch (e: any) { console.log("FAIL", u, e?.message?.slice(0,150)); } } })();
