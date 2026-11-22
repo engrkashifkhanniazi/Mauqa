@@ -23,6 +23,12 @@ export default async function Admin() {
         <label key={n} htmlFor={"add-" + n}>{l}{req ? " *" : ""}<input id={"add-" + n} name={n} type={t} required={req} style={{ display: "block", width: "100%", minHeight: 44 }} /></label>)}
       <label htmlFor="add-source">Source<select id="add-source" name="source" defaultValue="ETEA" style={{ display: "block", width: "100%", minHeight: 44 }}><option>ETEA</option><option>FPSC</option><option>KPPSC</option></select></label>
       <button className="rs" type="submit">Publish (unverified)</button></form>
+    <h2>Paste many jobs at once</h2><p className="nt">Open the official page on your phone, select all, copy, and paste below. Each line that has a closing date becomes one job; you check the list before it goes live.</p>
+    <form method="post" action="/api/admin/paste" className="card" style={{ padding: 14, margin: "10px 0", display: "grid", gap: 10 }}>
+      <label htmlFor="p-source">Source<select id="p-source" name="source" defaultValue="ETEA" style={{ display: "block", width: "100%", minHeight: 44 }}><option>ETEA</option><option>FPSC</option><option>KPPSC</option></select></label>
+      <label htmlFor="p-url">Official page link *<input id="p-url" name="officialUrl" type="url" required style={{ display: "block", width: "100%", minHeight: 44 }} /></label>
+      <label htmlFor="p-text">Pasted text *<textarea id="p-text" name="text" required rows={8} style={{ display: "block", width: "100%" }} /></label>
+      <button className="rs" type="submit">Preview</button></form>
     <h2>Review queue ({queue.length})</h2>{queue.length === 0 && <p>Nothing to review.</p>}
     {queue.map((q) => <form key={String(q.id)} method="post" action="/api/admin/resolve" className="card" style={{ padding: 14, margin: "10px 0" }}><b>{String(q.title)}</b><p className="nt">{String(q.reason)} · <a href={String(q.official_url)} rel="noopener noreferrer">official source</a></p><input type="hidden" name="id" value={String(q.id)} />
       <button className="rs" name="action" value="publish" type="submit">Publish</button> <button className="rs" name="action" value="reject" type="submit">Reject</button></form>)}</main>);
