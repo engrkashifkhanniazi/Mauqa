@@ -43,7 +43,7 @@ export async function politeFetch(url: string, opts: { etag?: string | null; bin
       if (r.status === 401 || r.status === 403) throw new Error(`access refused (${r.status}); not bypassing`);
       const buf = new Uint8Array(await r.arrayBuffer());
       return { status: r.status, notModified: false, body: buf, text: opts.binary ? undefined : new TextDecoder().decode(buf), etag: r.headers.get("etag"), hash: sha256(buf), contentType: r.headers.get("content-type") };
-    } catch (e) { if (attempt === 2) throw e; await sleep(delay); delay *= 2; }
+    } catch (e) { if (attempt === 2) { const c = (e as { cause?: { code?: string; message?: string } }).cause; throw new Error(`${(e as Error).message}${c ? ` [cause: ${c.code ?? ''} ${c.message ?? ''}]` : ''}`); } await sleep(delay); delay *= 2; }
   }
   throw new Error(`gave up on ${url}`);
 }
