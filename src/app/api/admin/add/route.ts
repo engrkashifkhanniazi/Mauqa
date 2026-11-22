@@ -9,7 +9,7 @@ import { sha256 } from "@/lib/fetcher";
 
 const blank = (v: unknown) => (v === "" ? undefined : v);
 const Body = z.object({
-  source: z.enum(["ETEA", "FPSC", "KPPSC", "PPSC", "SPSC", "BPSC", "NTS", "Daily Aaj", "Daily Jang", "Nawa-i-Waqt", "Daily Mashriq"]),
+  source: z.enum(["ETEA", "FPSC", "KPPSC", "PPSC", "SPSC", "BPSC", "NTS", "Daily Aaj", "Daily Jang", "Nawa-i-Waqt", "Daily Mashriq", "Daily Ausaf", "Daily Express"]),
   title: z.string().trim().min(5).max(200),
   department: z.preprocess(blank, z.string().trim().max(200).optional()),
   bps: z.preprocess(blank, z.coerce.number().int().min(1).max(22).optional()),
