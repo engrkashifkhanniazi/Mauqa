@@ -17,6 +17,12 @@ export default async function Admin() {
   return (<main className="wrap" style={{ padding: "28px 20px 60px" }}><h1>Admin</h1>
     <h2>Source health</h2><ul>{health.map((h) => <li key={String(h.key)}><b>{String(h.key)}</b>: {String(h.last_status ?? "never run")}, last items {String(h.last_seen ?? "-")}, checked {h.last_checked_at ? new Date(String(h.last_checked_at)).toISOString() : "never"}</li>)}</ul>
     <h2>AI spend this month</h2><p>${Number(spend[0]?.usd ?? 0).toFixed(4)} of ${process.env.CLAUDE_MONTHLY_BUDGET_USD ?? "unset"} cap, {String(spend[0]?.calls ?? 0)} calls</p>
+    <h2>Add a listing by hand</h2><p className="nt">For sources that refuse our server (ETEA returns 403). Copy the facts from the official advertisement; the same rules engine checks them. Manual entries are never shown as Verified.</p>
+    <form method="post" action="/api/admin/add" className="card" style={{ padding: 14, margin: "10px 0", display: "grid", gap: 10 }}>
+      {([["title", "Post title", "text", true], ["department", "Department", "text", false], ["bps", "BPS (1-22)", "number", false], ["vacancies", "Vacancies", "number", false], ["city", "City", "text", false], ["lastDate", "Last date", "date", true], ["officialUrl", "Official advertisement URL", "url", true], ["applyUrl", "Apply URL (optional)", "url", false]] as const).map(([n, l, t, req]) =>
+        <label key={n} htmlFor={"add-" + n}>{l}{req ? " *" : ""}<input id={"add-" + n} name={n} type={t} required={req} style={{ display: "block", width: "100%", minHeight: 44 }} /></label>)}
+      <label htmlFor="add-source">Source<select id="add-source" name="source" defaultValue="ETEA" style={{ display: "block", width: "100%", minHeight: 44 }}><option>ETEA</option><option>FPSC</option><option>KPPSC</option></select></label>
+      <button className="rs" type="submit">Publish (unverified)</button></form>
     <h2>Review queue ({queue.length})</h2>{queue.length === 0 && <p>Nothing to review.</p>}
     {queue.map((q) => <form key={String(q.id)} method="post" action="/api/admin/resolve" className="card" style={{ padding: 14, margin: "10px 0" }}><b>{String(q.title)}</b><p className="nt">{String(q.reason)} · <a href={String(q.official_url)} rel="noopener noreferrer">official source</a></p><input type="hidden" name="id" value={String(q.id)} />
       <button className="rs" name="action" value="publish" type="submit">Publish</button> <button className="rs" name="action" value="reject" type="submit">Reject</button></form>)}</main>);
