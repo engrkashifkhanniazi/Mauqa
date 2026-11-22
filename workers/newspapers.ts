@@ -22,7 +22,7 @@ const ddmmyyyy = (off: number) => { const t = new Date(Date.now() + 5 * 3600e3 -
 
 async function main() {
   if (process.argv.includes("--probe")) { // connectivity check only: no AI, no DB
-    for (const off of [0, 1]) { const d = ddmmyyyy(off); try { const r = await politeFetch(PAPERS[0].imageUrl(d, 7), { binary: true, referer: PAPERS[0].pageUrl(d, 7) }); console.log(`probe ${d} page7 http=${r.status} bytes=${r.body?.length} type=${r.contentType}`); } catch (e) { console.log(`probe ${d} error:`, (e as Error).message); } }
+    for (const off of [0, 1]) { const d = ddmmyyyy(off); try { const r = await politeFetch(PAPERS[0].imageUrl(d, 1), { binary: true, referer: PAPERS[0].pageUrl(d, 1) }); console.log(`probe ${d} page1 http=${r.status} bytes=${r.body?.length} type=${r.contentType}`); } catch (e) { console.log(`probe ${d} error:`, (e as Error).message); } }
     return;
   }
   if (!process.env.ANTHROPIC_API_KEY) { console.log("newspaper pipeline waiting: ANTHROPIC_API_KEY is not set yet. Nothing to do."); return; }

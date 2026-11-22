@@ -8,7 +8,7 @@ Stack: Next.js App Router, TypeScript, plain CSS tokens, Drizzle + Neon Postgres
 - FPSC: ingested. The advertisement is a scanned PDF, so posts are read with free OCR (tesseract). They are always shown as **Unverified**; "Verified" is only set when code confirms a listing.
 - ETEA: the site returns 403 to GitHub Actions. Paused (`PAUSED_SOURCES`, default `ETEA`). Add ETEA listings by hand in /admin. The ETEA parser has not been tested against real HTML.
 - KPPSC: parser handles the empty state only.
-- Newspaper pipeline: behind a flag, OFF. Not implemented until publishers permit it.
+- Newspapers: Daily Mashriq e-paper pipeline is built (`workers/newspapers.ts`, workflow `newspapers`, daily). It reads page images in memory, Claude extracts facts only, and the site links to the e-paper page. Page images and ad text are never stored. It waits quietly until the GitHub secret `ANTHROPIC_API_KEY` exists. Spend cap: `CLAUDE_MONTHLY_BUDGET_USD` secret, default 8 USD when unset. Not yet run end to end with a real key; check the admin review queue after the first run. Other papers need their own image-URL pattern in `PAPERS`.
 - Claude vision fallback: never exercised (no API key set, AI disabled). Prices in `budget.ts` are placeholders.
 - Alert emails need `RESEND_API_KEY` (not set).
 - Vercel Hobby is non-commercial; check before adding ads.
