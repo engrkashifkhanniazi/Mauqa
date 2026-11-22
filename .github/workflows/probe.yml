@@ -1,0 +1,18 @@
+name: probe
+on: { workflow_dispatch: { inputs: { url: { description: "url", default: "https://www.fpsc.gov.pk/uploads/content/1793976822925_consolidated-advertisement-04-2026.pdf" } } } }
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env: { NODE_EXTRA_CA_CERTS: "${{ github.workspace }}/certs/gogetssl-rsa-dv-ssl-ca-2.pem" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx tsx scripts/snapshot.ts "${{ github.event.inputs.url }}" | grep -v B64 | head -3
+      - run: |
+          which pdftotext || sudo apt-get install -y poppler-utils >/dev/null
+          pdfinfo snap.html | head -8 || true
+          pdftotext -layout snap.html out.txt; wc -l out.txt
+          echo "=====HEAD====="; sed -n 1,70p out.txt
+          echo "=====DATES====="; grep -nEi "last date|closing|on or before|deadline|upto|up to" out.txt | head -15
