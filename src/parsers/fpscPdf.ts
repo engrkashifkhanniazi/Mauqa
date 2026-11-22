@@ -24,6 +24,7 @@ const titleCase = (s: string) => s.toLowerCase().replace(/\b([a-z])/g, (c) => c.
 
 function dept(raw: string): string | null {
   let t = raw.replace(/\bDepartment\b/gi, " ").replace(/[|_~]/g, " ").replace(/\s+\/\s*/g, " ").replace(/\s+/g, " ").trim();
+  t = t.split(/[\[\]—–]/)[0].trim();
   const paren = t.match(/^(.*?\([A-Z]{2,8}\))/); if (paren) t = paren[1];
   else if (t.length > 70) t = t.slice(0, 70).replace(/\s+\S*$/, "");
   t = t.replace(/^[^A-Za-z]+/, "").replace(/[^A-Za-z)]+$/, "").trim();

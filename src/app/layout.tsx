@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://rozgardesk.vercel.app"),
-  title: { default: "Rozgar Desk | Pakistan government jobs, found and verified", template: "%s | Rozgar Desk" },
+  title: { default: "Rozgar Desk | Pakistan government jobs in one place", template: "%s | Rozgar Desk" },
   description: "FPSC, KPPSC, ETEA and newspaper job advertisements in one place, each linked to the official source.",
   openGraph: { title: "Rozgar Desk", description: "Pakistan government jobs linked to official advertisements.", type: "website", siteName: "Rozgar Desk" },
 };
