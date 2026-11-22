@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ALL_SOURCES, GOV, isGov, type JobView } from "@/lib/types";
 
-const COL: Record<string, string> = { FPSC: "--fpsc", KPPSC: "--kppsc", ETEA: "--etea" };
+const COL: Record<string, string> = { FPSC: "--fpsc", KPPSC: "--kppsc", ETEA: "--etea", PPSC: "--kppsc", SPSC: "--fpsc", BPSC: "--etea", NTS: "--kppsc" };
 const cv = (s: string) => { const k = COL[s] ?? "--news"; return { ["--c" as string]: `var(${k})`, ["--cs" as string]: `var(${k}-s)` } as React.CSSProperties; };
 const msDay = 864e5;
 const fd = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -82,7 +82,7 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
         </div></section>
 
         <section className="strip wrap" aria-label="Open jobs by source"><div className="sg">
-          {([["FPSC", "Federal"], ["KPPSC", "Khyber Pakhtunkhwa"], ["ETEA", "Khyber Pakhtunkhwa testing service"]] as const).map(([s, t]) => <div key={s} className="st" style={{ ["--c" as string]: `var(${COL[s]})` } as React.CSSProperties}><b>{s}</b><span className="n">{count(s)}</span><small>open jobs, {t}</small></div>)}
+          {([["FPSC", "Federal"], ["KPPSC", "Khyber Pakhtunkhwa"], ["ETEA", "Khyber Pakhtunkhwa testing service"], ["PPSC", "Punjab"], ["SPSC", "Sindh"], ["BPSC", "Balochistan"], ["NTS", "National Testing Service"]] as const).map(([s, t]) => <div key={s} className="st" style={{ ["--c" as string]: `var(${COL[s]})` } as React.CSSProperties}><b>{s}</b><span className="n">{count(s)}</span><small>open jobs, {t}</small></div>)}
           <div className="st" style={{ ["--c" as string]: "var(--news)" } as React.CSSProperties}><b>Newspapers</b><span className="n">{jobs.filter((j) => !isGov(j.source)).length}</span><small>open jobs, Aaj, Jang, Nawa-i-Waqt, Mashriq</small></div>
         </div></section>
 
