@@ -7,7 +7,7 @@ const LAST = /Last Date of Application Form Submission is:\s*(.+)/i;
 /** NTS "Open Applications" page: each project is a title line followed by "Last Date of Application Form Submission is: <date>" and a Details link. */
 export function parseNts(html: string): ParseResult {
   const $ = cheerio.load(html); $("script,style").remove();
-  $("br").replaceWith("\n"); $("p,div,li,tr,td,h1,h2,h3,h4,h5,h6,a,span").each((_, e) => { $(e).append("\n"); });
+  $("br").replaceWith("\n"); $("p,div,li,tr,td,h1,h2,h3,h4,h5,h6").each((_, e) => { $(e).append("\n"); });
   const lines = $("body").text().split("\n").map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean);
   const start = lines.findIndex((l) => /^Closed Applications$/i.test(l));
   const rows: { title: string; date: string | null }[] = [];
