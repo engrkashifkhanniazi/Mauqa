@@ -12,13 +12,16 @@ import type { ParseResult } from "../src/parsers/types";
 const SOURCES: Record<string, { name: string; url: string; parse: (h: string) => ParseResult }> = {
   ETEA: { name: "ETEA", url: "https://etea.online/", parse: parseEtea },
   KPPSC: { name: "KPPSC", url: "https://www.kppsc.gov.pk/advertisement", parse: parseKppsc },
-  FPSC: { name: "FPSC", url: "https://www.fpsc.gov.pk/category/advertisements", parse: parseFpsc },
+  FPSC: { name: "FPSC", url: "https://www.fpsc.gov.pk/Jobs?section=GR", parse: parseFpsc },
 };
 const rows = (r: unknown) => ((r as { rows?: unknown[] }).rows ?? r) as Record<string, unknown>[];
 const DRY = process.argv.includes("--dry");
+// ETEA returns 403 to our host (GitHub Actions) as of 2026-11-22; we do not bypass it. Override with PAUSED_SOURCES="" once access is granted.
+const PAUSED = (process.env.PAUSED_SOURCES ?? "ETEA").split(",").filter(Boolean);
 const only = process.argv.find((a) => a.startsWith("--source="))?.split("=")[1];
 
 async function runSource(key: string) {
+  if (PAUSED.includes(key)) return { key, skipped: "paused (access refused 403; waiting for permission)" };
   const s = SOURCES[key]; const errors: { type: string; message: string }[] = []; let seen = 0, fresh = 0;
   const sr = rows(await db().execute(sql`insert into sources (key, name, base_url) values (${key}, ${s.name}, ${s.url}) on conflict (key) do update set base_url = excluded.base_url returning id, etag, enabled`))[0];
   if (!sr.enabled) return { key, skipped: "disabled" };

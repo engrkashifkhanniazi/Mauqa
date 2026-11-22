@@ -1,4 +1,5 @@
 # Fixtures
-These are NOT raw captures. The build sandbox could not reach the source sites; they were reconstructed from the
-rendered text returned by a web-fetch tool (ETEA table, KPPSC empty state) on 2026-11-22. Replace them with real saved
-HTML (`curl -A "RozgarDeskBot/0.1" URL > file`) and re-run `npm test` before trusting the parsers.
+- `fpsc-jobs-gr.raw.html` is a REAL, unmodified capture (RozgarDeskBot via politeFetch from GitHub Actions, 2026-11-22) of https://www.fpsc.gov.pk/Jobs?section=GR.
+- `etea-table.reconstructed.html` and `kppsc-empty.reconstructed.html` are NOT raw captures: they were reconstructed from rendered text.
+  ETEA returns 403 to our host, so its parser is still unverified against real HTML. KPPSC's empty state was seen live ("No active advertisement!").
+Replace the reconstructed files with real saved HTML and re-run `npm test` before trusting those two parsers.

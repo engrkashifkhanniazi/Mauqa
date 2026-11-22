@@ -15,5 +15,23 @@ describe("KPPSC parser", () => {
   it("empty state is legitimate, not broken", () => { const r = parseKppsc(fx("kppsc-empty.reconstructed.html")); expect(r).toMatchObject({ emptyState: true, broken: false, items: [] }); });
   it("unknown layout is broken", () => expect(parseKppsc("<html><body>Maintenance</body></html>").broken).toBe(true));
 });
-describe("FPSC parser", () => it("is explicitly unimplemented", () => expect(parseFpsc("").broken).toBe(true)));
+describe("FPSC parser (empty input)", () => it("reports broken, never guesses", () => expect(parseFpsc("").broken).toBe(true)));
 describe("robots", () => it("honours Disallow for *", () => expect(parseRobots("User-agent: *\nDisallow: /admin # x\n")).toEqual(["/admin"])));
+
+describe("FPSC parser (real capture, 2026-11-22)", () => {
+  const html = readFileSync("tests/fixtures/fpsc-jobs-gr.raw.html", "utf8");
+  it("extracts the GR consolidated advertisement with its official PDF", () => {
+    const r = parseFpsc(html);
+    expect(r.broken).toBe(false);
+    expect(r.items).toHaveLength(1);
+    expect(r.items[0].title).toMatch(/Consolidated Advertisement No\. 4\/2026/);
+    expect(r.items[0].officialUrl).toBe("https://www.fpsc.gov.pk/uploads/content/1793976822925_consolidated-advertisement-04-2026.pdf");
+    expect(r.items[0].applyUrl).toBe("https://cp.fpsc.gov.pk/gr_one/index_gr.php");
+    expect(r.items[0].lastDate).toBeNull();
+    expect(r.items[0].fieldsConfirmedAgainstSource).toBe(false);
+  });
+  it("reports broken when the layout changes and empty when no cards", () => {
+    expect(parseFpsc("<html><body><p>hi</p></body></html>").broken).toBe(true);
+    expect(parseFpsc("<h1>GR Advertisements</h1><div><p>none</p></div>").emptyState).toBe(true);
+  });
+});
