@@ -1,6 +1,6 @@
 export interface Candidate {
   title?: string | null; officialUrl?: string | null; lastDate?: string | null; noDeadlineStated?: boolean;
-  aiUsed?: boolean; aiConfidence?: number | null; conflictsWithExisting?: boolean; fieldsConfirmedAgainstSource?: boolean;
+  aiUsed?: boolean; ocrConflict?: boolean; aiConfidence?: number | null; conflictsWithExisting?: boolean; fieldsConfirmedAgainstSource?: boolean;
 }
 export type Decision = { action: "publish" | "quarantine" | "reject"; verified: boolean; reasons: string[] };
 export const ALLOWED_DOMAINS = ["etea.online", "kppsc.gov.pk", "fpsc.gov.pk"];
@@ -23,6 +23,7 @@ export function evaluate(c: Candidate, today = new Date()): Decision {
     else if (d < today) reasons.push("deadline in the past");
   }
   if (c.aiUsed && !((c.aiConfidence ?? 0) >= 0.85)) reasons.push("ai confidence below 0.85");
+  if (c.ocrConflict) reasons.push("scanned-PDF date disagrees with the ad's closing date");
   if (c.conflictsWithExisting) reasons.push("conflicts with existing listing");
   if (reasons.length) return { action: "quarantine", verified: false, reasons };
   // Verified only when fields were checked against the official source by code, never for AI-only reads.

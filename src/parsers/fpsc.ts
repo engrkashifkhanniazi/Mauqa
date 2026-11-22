@@ -26,7 +26,7 @@ export function parseFpsc(html: string): ParseResult {
     const ad = files.find((f) => f.kind === "advertisement");
     if (!ad) return;
     const no = title.match(/No\.?\s*([\w/.-]+)/i)?.[1] ?? title.slice(0, 40);
-    items.push({ sourceKey: "FPSC", externalId: `GR-${no}`, title, lastDate: null, officialUrl: ad.url, applyUrl, files, needsAi: false, fieldsConfirmedAgainstSource: false });
+    items.push({ sourceKey: "FPSC", externalId: `GR-${no}`, title, lastDate: null, officialUrl: ad.url, applyUrl, files, needsAi: false, fieldsConfirmedAgainstSource: false, expand: "fpsc-pdf" });
   });
   if (items.length) return { items, emptyState: false, broken: false, note: "advertisement-level only; post details are inside the PDF" };
   if (!cards.length) return { items: [], emptyState: true, broken: false };

@@ -35,3 +35,24 @@ describe("FPSC parser (real capture, 2026-11-22)", () => {
     expect(parseFpsc("<h1>GR Advertisements</h1><div><p>none</p></div>").emptyState).toBe(true);
   });
 });
+
+import { parseFpscAd } from "../src/parsers/fpscPdf";
+describe("FPSC consolidated-ad OCR parser (real OCR text of pages 1-3, 2026-11-22)", () => {
+  const ad = parseFpscAd(readFileSync("tests/fixtures/fpsc-ad-ocr-pages1-3.txt", "utf8"));
+  it("reads the ad-level dates", () => { expect(ad.publishedDate).toBe("2026-11-06"); expect(ad.closingDate).toBe("2026-11-23"); });
+  it("extracts three posts with structured facts", () => {
+    expect(ad.posts.map((p) => p.caseNo)).toEqual(["F.4-176/2026-R", "F.4-152/2026-R", "F.4-177/2026-R"]);
+    const [a, b, c] = ad.posts;
+    expect(a).toMatchObject({ title: "Assistant Draftsman", bps: 18, vacancies: 1, ageMin: 25, ageMax: 35, city: "Islamabad", closingDate: "2026-11-23", dateConflict: false });
+    expect(a.department).toBe("Law and Justice");
+    expect(b).toMatchObject({ title: "Professor", bps: 20, vacancies: 6, ageMax: 52, city: "Islamabad" });
+    expect(c).toMatchObject({ title: "Associate Professor", bps: 19, vacancies: 2, ageMax: 48 });
+  });
+  it("falls back to the ad-level date when OCR garbles a post's date, without flagging a conflict", () => {
+    expect(ad.posts[1].closingDate).toBe("2026-11-23"); expect(ad.posts[1].dateConflict).toBe(false);
+  });
+  it("flags a real disagreement and returns nothing for empty text", () => {
+    const x = parseFpscAd("Islamabad, the 6 November, 2026\n(i) apply on-line upto 23 November, 2026.\n\n1. Case No.F.4-1/2026-R\nPost with pay scale | CLERK (BS-07)\nVacancies One (1)\nClosing date 30-11-2026");
+    expect(x.posts[0].dateConflict).toBe(true); expect(parseFpscAd("").posts).toHaveLength(0);
+  });
+});
