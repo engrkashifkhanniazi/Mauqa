@@ -1,6 +1,6 @@
 /** Turns text that a human copied from an official page into candidate listings.
  *  One candidate per line that contains a recognisable closing date. Nothing here is "Verified". */
-export interface Cand { title: string; lastDate: string; bps?: number; vacancies?: number }
+export interface Cand { title: string; lastDate: string; bps?: number; vacancies?: number; department?: string; city?: string; education?: string }
 const M: Record<string, number> = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
 const iso = (y: number, m: number, d: number) => (y > 2000 && m >= 1 && m <= 12 && d >= 1 && d <= 31 ? `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}` : null);
 const PATS: { re: RegExp; f: (m: RegExpMatchArray) => string | null }[] = [
@@ -13,6 +13,11 @@ export function parsePaste(text: string): Cand[] {
   const out: Cand[] = [];
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.replace(/\s+/g, " ").trim();
+    if (line.includes(";;")) { // structured: title;;department;;city;;vacancies;;bps;;education;;YYYY-MM-DD
+      const [t, dep, city, vac, bps, edu, dt] = line.split(";;").map((x) => x.trim());
+      if (t && t.length >= 5 && /^\d{4}-\d{2}-\d{2}$/.test(dt ?? "")) out.push({ title: t, lastDate: dt, department: dep || undefined, city: city || undefined, vacancies: +vac > 0 ? +vac : undefined, bps: +bps > 0 && +bps <= 22 ? +bps : undefined, education: edu || undefined });
+      continue;
+    }
     if (line.length < 12) continue;
     let hit: { idx: number; len: number; date: string } | null = null;
     for (const p of PATS) { const m = line.match(p.re); if (m && m.index !== undefined) { const d = p.f(m); if (d) { hit = { idx: m.index, len: m[0].length, date: d }; break; } } }

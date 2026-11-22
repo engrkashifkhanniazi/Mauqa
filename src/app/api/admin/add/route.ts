@@ -14,6 +14,7 @@ const Body = z.object({
   department: z.preprocess(blank, z.string().trim().max(200).optional()),
   bps: z.preprocess(blank, z.coerce.number().int().min(1).max(22).optional()),
   vacancies: z.preprocess(blank, z.coerce.number().int().min(1).max(100000).optional()),
+  education: z.preprocess(blank, z.string().trim().max(200).optional()),
   city: z.preprocess(blank, z.string().trim().max(80).optional()),
   lastDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   officialUrl: z.string().url(),
@@ -32,8 +33,8 @@ export async function POST(req: NextRequest) {
   if (d.action !== "publish") return NextResponse.json({ error: "rules engine refused", reasons: d.reasons }, { status: 422 });
   const sr = rows(await db().execute(sql`insert into sources (key, name, base_url) values (${b.source}, ${b.source}, ${b.officialUrl}) on conflict (key) do update set key = excluded.key returning id`))[0];
   const slug = slugify(b.title, b.lastDate + "-" + sha256(b.officialUrl + b.title).slice(0, 6));
-  await db().execute(sql`insert into jobs (slug, title, department, source_id, city, bps, vacancies, last_date, status, official_url, apply_url, dedupe_key, content_hash)
-    values (${slug}, ${b.title}, ${b.department ?? null}, ${Number(sr.id)}, ${b.city ?? null}, ${b.bps ?? null}, ${b.vacancies ?? null}, ${b.lastDate}, 'published', ${b.officialUrl}, ${b.applyUrl ?? null}, ${slug + "|" + b.lastDate}, ${sha256("manual|" + slug)})
+  await db().execute(sql`insert into jobs (slug, title, department, source_id, city, education, bps, vacancies, last_date, status, official_url, apply_url, dedupe_key, content_hash)
+    values (${slug}, ${b.title}, ${b.department ?? null}, ${Number(sr.id)}, ${b.city ?? null}, ${b.education ?? null}, ${b.bps ?? null}, ${b.vacancies ?? null}, ${b.lastDate}, 'published', ${b.officialUrl}, ${b.applyUrl ?? null}, ${slug + "|" + b.lastDate}, ${sha256("manual|" + slug)})
     on conflict (slug) do nothing`);
   return NextResponse.redirect(new URL("/admin?added=1", req.url), 303);
 }

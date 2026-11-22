@@ -107,8 +107,8 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
                   <article key={j.id} className="card" style={cv(j.source)}>
                     <div className="cap"><span>{j.source} · {j.province}</span><span className={j.verified ? "ver" : "smp"}>{j.verified ? "Verified" : sample ? "Sample" : "Unverified"}</span></div>
                     <div className="cb"><div><h3><Ob j={j} /></h3><div className="org">{j.department}</div></div>
-                      <div className="meta"><span>{j.city}</span><span>{j.vacancies} vacancies</span><span>Last date {fd(j.lastDate)}</span></div>
-                      <div className="ft"><span style={{ display: "flex", gap: 8, alignItems: "center" }}><span className="bps">BPS-{j.bps}</span><Due j={j} /></span><Sv j={j} /></div></div>
+                      <div className="meta">{j.city && <span>{j.city}</span>}{j.vacancies != null && <span>{j.vacancies} vacancies</span>}{j.education && <span>{j.education}</span>}<span>Last date {fd(j.lastDate)}</span></div>
+                      <div className="ft"><span style={{ display: "flex", gap: 8, alignItems: "center" }}>{j.bps != null && <span className="bps">BPS-{j.bps}</span>}<Due j={j} /></span><Sv j={j} /></div></div>
                   </article>)) : <div className="empty">No government jobs match. Try clearing a filter.</div>}
               </div>
             </section>
@@ -119,7 +119,7 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
                 {news.length ? news.map((j) => (
                   <article key={j.id} className="ad"><div className="k">{j.source} · {j.province}</div><h3><Ob j={j} /></h3><div className="o">{j.department}</div>
                     <div className="m"><b>{j.vacancies} posts</b> in {j.city}. {j.education}. Apply by <b>{fd(j.lastDate)}</b>.</div>
-                    <div className="r"><span className="bps">BPS-{j.bps}</span><Due j={j} /><Sv j={j} /></div></article>)) : <div className="empty">No newspaper notices match these filters.</div>}
+                    <div className="r">{j.bps != null && <span className="bps">BPS-{j.bps}</span>}<Due j={j} /><Sv j={j} /></div></article>)) : <div className="empty">No newspaper notices match these filters.</div>}
               </div>
             </section>
 
@@ -138,7 +138,7 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
         {open && <div className="sheet">
           <header><h2 id="dT">{open.title}</h2><button ref={closeBtn} className="sv" type="button" aria-label="Close" onClick={() => dlg.current?.close()}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button></header>
           <div className="bd"><p className="nt">{open.department}.{open.verified ? "" : sample ? " Sample listing for design review." : " Not yet verified. Confirm every detail on the official advertisement."}</p>
-            <div className="fc">{[["Last date", fd(open.lastDate)], ["Time left", `${left(open)} days`], ["Pay scale", `BPS-${open.bps}`], ["Vacancies", String(open.vacancies)], ["Education", open.education], ["Age", open.age], ["Location", open.city], ["Source", open.source]].map(([k, v]) => <div key={k}><small>{k}</small><b>{v}</b></div>)}</div>
+            <div className="fc">{[["Last date", fd(open.lastDate)], ["Time left", `${left(open)} days`], ["Pay scale", open.bps != null ? `BPS-${open.bps}` : ""], ["Vacancies", open.vacancies != null ? String(open.vacancies) : ""], ["Education", open.education], ["Age", open.age], ["Location", open.city], ["Source", open.source]].filter(([, v]) => v).map(([k, v]) => <div key={k}><small>{k}</small><b>{v}</b></div>)}</div>
             {open.verified && <div className="vf"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /><path d="M8.5 12.5l2.5 2.5 4.5-5" /></svg><div><b>Checked against the official advertisement.</b><br />Details match the {open.source} notice. Confirm eligibility in the original ad before applying.</div></div>}
             <div><h3 style={{ fontSize: 17, marginBottom: 10 }}>How to apply</h3><ol><li>Read the eligibility in the official advertisement.</li><li>Apply on the {open.source} portal before the last date.</li><li>Keep documents and fee receipt ready.</li></ol></div>
             <a className="cta" href={open.officialUrl} target="_blank" rel="noopener noreferrer" style={{ textAlign: "center", textDecoration: "none", display: "grid", placeItems: "center" }}>Open official advertisement</a>

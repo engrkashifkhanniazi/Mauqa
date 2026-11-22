@@ -9,3 +9,9 @@ describe("parsePaste", () => {
   });
   it("ignores lines without a date", () => { expect(parsePaste("Home | About | Contact us now")).toEqual([]); });
 });
+describe("structured lines", () => {
+  it("reads ;; fields incl. education", () => {
+    const r = parsePaste("Staff Nurse;;Services Hospital;;Lahore;;12;;16;;BSc Nursing;;2026-12-20");
+    expect(r[0]).toMatchObject({ title: "Staff Nurse", department: "Services Hospital", city: "Lahore", vacancies: 12, bps: 16, education: "BSc Nursing", lastDate: "2026-12-20" });
+  });
+});

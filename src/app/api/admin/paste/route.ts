@@ -32,8 +32,8 @@ export async function POST(req: NextRequest) {
       const d = evaluate({ title: c.title, officialUrl, lastDate: c.lastDate, fieldsConfirmedAgainstSource: false });
       if (d.action !== "publish") { refused++; continue; }
       const slug = slugify(c.title, c.lastDate + "-" + sha256(officialUrl + c.title).slice(0, 6));
-      await db().execute(sql`insert into jobs (slug, title, department, source_id, city, bps, vacancies, last_date, status, official_url, apply_url, dedupe_key, content_hash)
-        values (${slug}, ${c.title}, ${null}, ${Number(sr.id)}, ${null}, ${c.bps ?? null}, ${c.vacancies ?? null}, ${c.lastDate}, 'published', ${officialUrl}, ${null}, ${slug + "|" + c.lastDate}, ${sha256("paste|" + slug)}) on conflict (slug) do nothing`);
+      await db().execute(sql`insert into jobs (slug, title, department, source_id, city, education, bps, vacancies, last_date, status, official_url, apply_url, dedupe_key, content_hash)
+        values (${slug}, ${c.title}, ${c.department ?? null}, ${Number(sr.id)}, ${c.city ?? null}, ${c.education ?? null}, ${c.bps ?? null}, ${c.vacancies ?? null}, ${c.lastDate}, 'published', ${officialUrl}, ${null}, ${slug + "|" + c.lastDate}, ${sha256("paste|" + slug)}) on conflict (slug) do nothing`);
       ok++;
     }
     return page(`<h2>Done</h2><p>${ok} published (unverified), ${refused} refused by the rules engine.</p><p><a href=/>See site</a> · <a href=/admin>Admin</a></p>`);
