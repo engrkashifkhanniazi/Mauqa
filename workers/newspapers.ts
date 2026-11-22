@@ -12,7 +12,7 @@ type R = Record<string, unknown>;
 const rows = (r: unknown) => ((r as { rows?: R[] }).rows ?? r) as R[];
 const MAX_PAGES = 40;
 
-interface Paper { key: "Daily Mashriq" | "Daily Jang"; label: string; home: string; pageUrl: (t: Date, n: number) => string; imageUrl: (t: Date, n: number) => string }
+interface Paper { key: "Daily Mashriq" | "Daily Jang" | "Nawa-i-Waqt"; fromHtml?: (html: string) => string | null; label: string; home: string; pageUrl: (t: Date, n: number) => string; imageUrl: (t: Date, n: number) => string }
 const pad = (x: number) => String(x).padStart(2, "0");
 const DMY = (t: Date) => `${pad(t.getUTCDate())}-${pad(t.getUTCMonth() + 1)}-${t.getUTCFullYear()}`;
 const MDY = (t: Date) => `${pad(t.getUTCMonth() + 1)}-${pad(t.getUTCDate())}-${t.getUTCFullYear()}`;
@@ -23,12 +23,21 @@ const PAPERS: Paper[] = [
   { key: "Daily Mashriq", label: "Mashriq Peshawar", home: "https://mashriqtv.pk/e-paper/", pageUrl: (t, n) => `https://mashriqtv.pk/e-paper/?pageno=${n}&date=${DMY(t)}`,
     imageUrl: (t, n) => `https://mashriqtv.pk/daily-mashriq/uploads/mashriqnp/${DMY(t)}/mas-${DMY(t)}-${n}.jpg` },
   jang("lahore"), jang("karachi"), jang("pindi"),
+  { key: "Nawa-i-Waqt", label: "Nawa-i-Waqt Lahore", home: "https://www.nawaiwaqt.com.pk/E-Paper",
+    pageUrl: (t, n) => `https://www.nawaiwaqt.com.pk/E-Paper/lahore/${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}-${pad(t.getUTCDate())}/page-${n}`,
+    imageUrl: () => "", fromHtml: (h) => h.match(/https:\/\/www\.nawaiwaqt\.com\.pk\/epaper_image\/large\/[^"'\s]+\.jpg/)?.[0] ?? null },
 ];
+async function pageImage(p: Paper, t: Date, n: number) {
+  let img = p.imageUrl(t, n);
+  if (p.fromHtml) { const h = await politeFetch(p.pageUrl(t, n)); if (h.status !== 200) return null; const u = p.fromHtml(h.text ?? Buffer.from(h.body ?? []).toString("utf8")); if (!u) return null; img = u; }
+  const r = await politeFetch(img, { binary: true, referer: p.pageUrl(t, n) });
+  return r.status === 200 && r.body && /image/i.test(r.contentType ?? "") ? r : null;
+}
 const edition = (off: number) => new Date(Date.now() + 5 * 3600e3 - off * 86400e3); // Pakistan time
 
 async function main() {
   if (process.argv.includes("--probe")) { // connectivity check only: no AI, no DB
-    for (const p of PAPERS) for (const off of [0, 1]) { const t = edition(off); try { const r = await politeFetch(p.imageUrl(t, 1), { binary: true, referer: p.pageUrl(t, 1) }); console.log(`probe ${p.label} ${DMY(t)} page1 http=${r.status} bytes=${r.body?.length} type=${r.contentType}`); } catch (e) { console.log(`probe ${p.label} ${DMY(t)} error:`, (e as Error).message); } }
+    for (const p of PAPERS) for (const off of [0, 1]) { const t = edition(off); try { const r = await pageImage(p, t, 1); console.log(`probe ${p.label} ${DMY(t)} page1 ${r ? `ok bytes=${r.body?.length}` : "not available"}`); } catch (e) { console.log(`probe ${p.label} ${DMY(t)} error:`, (e as Error).message); } }
     return;
   }
   if (!process.env.ANTHROPIC_API_KEY) { console.log("newspaper pipeline waiting: ANTHROPIC_API_KEY is not set yet. Nothing to do."); return; }
@@ -38,7 +47,7 @@ async function main() {
       const t = edition(off); const d = DMY(t); let pages = 0, adsFound = 0, published = 0, queued = 0;
       for (let n = 1; n <= MAX_PAGES; n++) {
         let img: Uint8Array | undefined;
-        try { const r = await politeFetch(paper.imageUrl(t, n), { binary: true, referer: paper.pageUrl(t, n) }); if (r.status !== 200 || !r.body || !/image/i.test(r.contentType ?? "")) break; img = r.body; } catch { break; }
+        try { const r = await pageImage(paper, t, n); if (!r) break; img = r.body; } catch { break; }
         pages++;
         const hash = sha256(img);
         if (rows(await db().execute(sql`select 1 from raw_items where content_hash = ${hash}`)).length) continue; // page already processed
