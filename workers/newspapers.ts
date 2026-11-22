@@ -23,15 +23,12 @@ const PAPERS: Paper[] = [
   { key: "Daily Mashriq", label: "Mashriq Peshawar", home: "https://mashriqtv.pk/e-paper/", pageUrl: (t, n) => `https://mashriqtv.pk/e-paper/?pageno=${n}&date=${DMY(t)}`,
     imageUrl: (t, n) => `https://mashriqtv.pk/daily-mashriq/uploads/mashriqnp/${DMY(t)}/mas-${DMY(t)}-${n}.jpg` },
   jang("lahore"), jang("karachi"), jang("pindi"),
-  { key: "Nawa-i-Waqt", label: "Nawa-i-Waqt Lahore", home: "https://www.nawaiwaqt.com.pk/E-Paper",
-    pageUrl: (t, n) => `https://www.nawaiwaqt.com.pk/E-Paper/lahore/${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}-${pad(t.getUTCDate())}/page-${n}`,
-    imageUrl: () => "", fromHtml: (h) => h.match(/https:\/\/www\.nawaiwaqt\.com\.pk\/epaper_image\/large\/[^"'\s]+\.jpg/)?.[0] ?? null },
 ];
 async function pageImage(p: Paper, t: Date, n: number) {
   let img = p.imageUrl(t, n);
   if (p.fromHtml) { const h = await politeFetch(p.pageUrl(t, n)); if (h.status !== 200) return null; const u = p.fromHtml(h.text ?? Buffer.from(h.body ?? []).toString("utf8")); if (!u) return null; img = u; }
   const r = await politeFetch(img, { binary: true, referer: p.pageUrl(t, n) });
-  return r.status === 200 && r.body && /image/i.test(r.contentType ?? "") ? r : null;
+  return r.status === 200 && r.body && /image/i.test(r.contentType ?? "") ? { ...r, body: r.body } : null;
 }
 const edition = (off: number) => new Date(Date.now() + 5 * 3600e3 - off * 86400e3); // Pakistan time
 
