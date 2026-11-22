@@ -22,5 +22,6 @@ jobs:
         if: always()
         run: |
           slug=$(curl -s "$BASE_URL/api/jobs?limit=1" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).jobs[0].slug))')
+          curl -s "$BASE_URL/jobs/$slug" | grep -o "<meta[^>]*description[^>]*>" | head -3 | sed "s/^/HEADMETA /"
           npx --yes lighthouse "$BASE_URL/jobs/$slug" --quiet --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility,seo,best-practices --output=json --output-path=lh2.json >/dev/null 2>&1 || true
           node -e 'const r=require("./lh2.json");console.log("LIGHTHOUSE mobile job page",JSON.stringify(Object.fromEntries(Object.entries(r.categories).map(([k,v])=>[k,Math.round(v.score*100)]))));console.log("FAILED_AUDITS",Object.values(r.audits).filter(x=>x.score!==null&&x.score<0.9&&x.scoreDisplayMode==="binary").map(x=>x.id).join(","))'

@@ -11,7 +11,7 @@ test("home loads with real FPSC listings and no console errors", async ({ page }
 });
 test("no real listing claims Verified (all are read from a scanned PDF)", async ({ page }) => {
   await page.goto("/"); await page.waitForLoadState("networkidle");
-  await expect(page.locator(".cap", { hasText: "Verified" })).toHaveCount(0);
+  await expect(page.locator(".cap span", { hasText: /^Verified$/ })).toHaveCount(0);
 });
 test("search narrows the list", async ({ page }) => {
   await page.goto("/"); await page.waitForLoadState("networkidle");
