@@ -11,8 +11,9 @@ jobs:
       - run: npm ci
       - run: npx tsx scripts/snapshot.ts "${{ github.event.inputs.url }}" | grep -v B64 | head -3
       - run: |
-          which pdftotext || sudo apt-get install -y poppler-utils >/dev/null
-          pdfinfo snap.html | head -8 || true
-          pdftotext -layout snap.html out.txt; wc -l out.txt
-          echo "=====HEAD====="; sed -n 1,70p out.txt
-          echo "=====DATES====="; grep -nEi "last date|closing|on or before|deadline|upto|up to" out.txt | head -15
+          sudo apt-get install -y tesseract-ocr poppler-utils >/dev/null 2>&1
+          pdfinfo snap.html | grep -E "Pages|Page size"
+          pdftoppm -r 170 -f 1 -l 3 -gray -png snap.html pg
+          for f in pg-*.png; do tesseract $f ${f%.png} --psm 6 >/dev/null 2>&1; done
+          for f in pg-*.txt; do echo "=====$f====="; sed -n 1,80p $f; done
+          echo "=====DATES====="; cat pg-*.txt | grep -nEi "last date|closing|on or before|deadline|up ?to|november|december|2026" | head -25
