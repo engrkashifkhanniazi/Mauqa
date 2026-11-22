@@ -15,5 +15,6 @@ export function parseBps(s: string): number | null {
 const DEPT_ALIASES: Record<string, string> = { "fbr": "Federal Board of Revenue", "c&w": "Communication and Works", "hed": "Higher Education Department" };
 export const normaliseDept = (s: string) => DEPT_ALIASES[s.trim().toLowerCase()] ?? s.trim().replace(/\s+/g, " ");
 export function slugify(title: string, code: string) {
-  return (title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + code.toLowerCase()).slice(0, 90);
+  const clean = (x: string) => x.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return (clean(title) + "-" + clean(code)).slice(0, 90).replace(/-+$/g, "");
 }

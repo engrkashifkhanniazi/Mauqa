@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-export const UA = "RozgarDeskBot/0.1 (+https://github.com/engrkashifkhanniazi/rozgar-desk; job-listing aggregator, links to official sources)";
+export const UA = "RozgarDeskBot/1.0 (+https://github.com/engrkashifkhanniazi/rozgardesk; job-listing aggregator, links to official sources)";
 const lastHit = new Map<string, number>();
 const robotsCache = new Map<string, string[] | null>();
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

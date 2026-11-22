@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getJobBySlug } from "@/lib/jobs";
 export const revalidate = 600;
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://rozgar-desk.vercel.app";
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://rozgardesk.vercel.app";
 const fd = (d: string) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "Not stated";
 type P = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: P): Promise<Metadata> {

@@ -1,4 +1,4 @@
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://rozgar-desk.vercel.app";
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://rozgardesk.vercel.app";
 export const mailConfigured = () => !!process.env.RESEND_API_KEY;
 /** Sends via Resend's free tier when RESEND_API_KEY is set; otherwise returns false (nothing is sent). */
 export async function sendMail(to: string, subject: string, html: string): Promise<boolean> {
