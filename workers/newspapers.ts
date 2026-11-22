@@ -12,21 +12,31 @@ type R = Record<string, unknown>;
 const rows = (r: unknown) => ((r as { rows?: R[] }).rows ?? r) as R[];
 const MAX_PAGES = 40;
 
-interface Paper { key: "Daily Mashriq" | "Daily Jang" | "Nawa-i-Waqt"; fromHtml?: (html: string) => string | null; label: string; home: string; pageUrl: (t: Date, n: number) => string; imageUrl: (t: Date, n: number) => string }
+interface Paper { key: "Daily Mashriq" | "Daily Jang" | "Nawa-i-Waqt" | "Daily Ausaf"; fromHtml?: (html: string) => string | null; listPages?: (t: Date) => Promise<string[]>; label: string; home: string; pageUrl: (t: Date, n: number) => string; imageUrl: (t: Date, n: number) => string }
 const pad = (x: number) => String(x).padStart(2, "0");
 const DMY = (t: Date) => `${pad(t.getUTCDate())}-${pad(t.getUTCMonth() + 1)}-${t.getUTCFullYear()}`;
 const MDY = (t: Date) => `${pad(t.getUTCMonth() + 1)}-${pad(t.getUTCDate())}-${t.getUTCFullYear()}`;
 const jang = (city: string): Paper => ({ key: "Daily Jang", label: `Jang ${city}`, home: "https://e.jang.com.pk/",
   pageUrl: (t, n) => `https://e.jang.com.pk/${city}/${DMY(t)}/page${n}`, imageUrl: (t, n) => `https://e.jang.com.pk/static_pages/${MDY(t)}/${city}/mainpage/page${n}.jpg` });
 // To add a paper: find how its e-paper serves page images (see docs in README) and add an entry here. Papers that block bots (Cloudflare checks) are NOT added.
+const YMD = (t: Date) => `${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}-${pad(t.getUTCDate())}`;
+const nawa = (city: string): Paper => ({ key: "Nawa-i-Waqt", label: `Nawa-i-Waqt ${city}`, home: "https://www.nawaiwaqt.com.pk/E-Paper/", pageUrl: (t, n) => `https://www.nawaiwaqt.com.pk/E-Paper/${city}/${YMD(t)}/page-${n}`, imageUrl: () => "",
+  fromHtml: (h) => h.match(/https:\/\/www\.nawaiwaqt\.com\.pk\/epaper_image\/large\/[^"'\s]+\.jpg/)?.[0] ?? null });
+// Ausaf lists every page of an edition on one page (thumbnail ids); the full-size image has the same id with "-full".
+const ausaf = (label: string, station: string): Paper => ({ key: "Daily Ausaf", label, home: "https://epaper.dailyausaf.com/", pageUrl: () => `https://epaper.dailyausaf.com/page${station}`, imageUrl: () => "",
+  listPages: async (t) => { const h = await politeFetch(`https://epaper.dailyausaf.com/page${station}`); if (h.status !== 200) return [];
+    return [...new Set([...(h.text ?? "").matchAll(/issues\/(\d{4}-\d{2}-\d{2})\/(\d+)-thumb\.jpg/g)].filter((m) => m[1] === YMD(t)).map((m) => `https://epaper.dailyausaf.com/issues/${m[1]}/${m[2]}-full.jpg`))]; } });
+const listCache = new Map<string, string[]>();
 const PAPERS: Paper[] = [
   { key: "Daily Mashriq", label: "Mashriq Peshawar", home: "https://mashriqtv.pk/e-paper/", pageUrl: (t, n) => `https://mashriqtv.pk/e-paper/?pageno=${n}&date=${DMY(t)}`,
     imageUrl: (t, n) => `https://mashriqtv.pk/daily-mashriq/uploads/mashriqnp/${DMY(t)}/mas-${DMY(t)}-${n}.jpg` },
-  jang("lahore"), jang("karachi"), jang("pindi"),
+  nawa("islamabad"), ausaf("Ausaf Islamabad", ""),
+  jang("peshawar"), jang("pindi"), // one edition per paper where possible: federal ads repeat across editions and each page costs API money
 ];
 async function pageImage(p: Paper, t: Date, n: number) {
   let img = p.imageUrl(t, n);
-  if (p.fromHtml) { const h = await politeFetch(p.pageUrl(t, n)); if (h.status !== 200) return null; const u = p.fromHtml(h.text ?? Buffer.from(h.body ?? []).toString("utf8")); if (!u) return null; img = u; }
+  if (p.listPages) { const k = `${p.label}|${YMD(t)}`; if (!listCache.has(k)) listCache.set(k, await p.listPages(t)); const u = listCache.get(k)![n - 1]; if (!u) return null; img = u; }
+  else if (p.fromHtml) { const h = await politeFetch(p.pageUrl(t, n)); if (h.status !== 200) return null; const u = p.fromHtml(h.text ?? Buffer.from(h.body ?? []).toString("utf8")); if (!u) return null; img = u; }
   const r = await politeFetch(img, { binary: true, referer: p.pageUrl(t, n) });
   return r.status === 200 && r.body && /image/i.test(r.contentType ?? "") ? { ...r, body: r.body } : null;
 }
