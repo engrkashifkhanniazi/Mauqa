@@ -31,7 +31,7 @@ const PAPERS: Paper[] = [
   { key: "Daily Mashriq", label: "Mashriq Peshawar", home: "https://mashriqtv.pk/e-paper/", pageUrl: (t, n) => `https://mashriqtv.pk/e-paper/?pageno=${n}&date=${DMY(t)}`,
     imageUrl: (t, n) => `https://mashriqtv.pk/daily-mashriq/uploads/mashriqnp/${DMY(t)}/mas-${DMY(t)}-${n}.jpg` },
   nawa("islamabad"), ausaf("Ausaf Islamabad", ""),
-  jang("peshawar"), jang("pindi"), // one edition per paper where possible: federal ads repeat across editions and each page costs API money
+  jang("pindi"), // one edition per paper where possible: federal ads repeat across editions and each page costs API money
 ];
 async function pageImage(p: Paper, t: Date, n: number) {
   let img = p.imageUrl(t, n);
