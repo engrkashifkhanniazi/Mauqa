@@ -1,0 +1,12 @@
+name: diag-fpsc
+on: { workflow_dispatch: {} }
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          set -x
+          echo | openssl s_client -connect www.fpsc.gov.pk:443 -servername www.fpsc.gov.pk -showcerts 2>/dev/null > chain.txt || true
+          grep -E "s:|i:|Verification|verify" chain.txt | head -20
+          awk '/BEGIN CERT/{f=1} f{print} /END CERT/{exit}' chain.txt > leaf.pem
+          openssl x509 -in leaf.pem -noout -subject -issuer -dates -ext authorityInfoAccess 2>&1 | head -20
