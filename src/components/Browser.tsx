@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ALL_SOURCES, GOV, isGov, type JobView } from "@/lib/types";
 
-const COL: Record<string, string> = { FPSC: "--fpsc", KPPSC: "--kppsc", ETEA: "--etea", PPSC: "--kppsc", SPSC: "--fpsc", BPSC: "--etea", NTS: "--kppsc", OTS: "--etea", PTS: "--fpsc", NJP: "--fpsc" };
+const COL: Record<string, string> = { FPSC: "--fpsc", KPPSC: "--kppsc", ETEA: "--etea", PPSC: "--kppsc", SPSC: "--fpsc", BPSC: "--etea", NTS: "--kppsc", OTS: "--etea", PTS: "--fpsc", NJP: "--fpsc", ATS: "--etea" };
 const cv = (s: string) => { const k = COL[s] ?? "--news"; return { ["--c" as string]: `var(${k})`, ["--cs" as string]: `var(${k}-s)` } as React.CSSProperties; };
 const msDay = 864e5;
 const fd = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });

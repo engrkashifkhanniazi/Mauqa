@@ -6,6 +6,7 @@ import { parseKppsc } from "../src/parsers/kppsc";
 import { parseFpsc } from "../src/parsers/fpsc";
 import { parseNts } from "../src/parsers/nts";
 import { parseOtsList, parseOtsProject } from "../src/parsers/ots";
+import { parseAtsList, parseAtsProject } from "../src/parsers/ats";
 import { checkScope } from "../src/pipeline/scope";
 import { evaluate } from "../src/pipeline/rules";
 import { slugify } from "../src/pipeline/normalise";
@@ -20,6 +21,7 @@ const SOURCES: Record<string, { name: string; url: string; parse: (h: string) =>
   KPPSC: { name: "KPPSC", url: "https://www.kppsc.gov.pk/advertisement", parse: parseKppsc },
   FPSC: { name: "FPSC", url: "https://www.fpsc.gov.pk/Jobs?section=GR", parse: parseFpsc },
   NTS: { name: "NTS", url: "https://www.nts.org.pk/new/projectsnew.php", parse: parseNts },
+  ATS: { name: "ATS", url: "https://www.ats.org.pk/", parse: parseAtsList },
   OTS: { name: "OTS", url: "https://www.ots.org.pk/projects.php", parse: parseOtsList },
 };
 const rows = (r: unknown) => ((r as { rows?: unknown[] }).rows ?? r) as Record<string, unknown>[];
@@ -45,6 +47,12 @@ async function runSource(key: string) {
       if (parsed.emptyState) errors.push({ type: "empty_state", message: "source reports no active advertisements" });
       const expanded: ParsedJob[] = [];
       for (const b of parsed.items) {
+        if (b.expand === "ats-project") {
+          if (!checkScope(b.title).inScope) { errors.push({ type: "info", message: `skipped (outside KP/Islamabad): ${b.title.slice(0, 60)}` }); continue; }
+          try { const pg = await politeFetch(b.officialUrl); const d = parseAtsProject(pg.text ?? ""); expanded.push({ ...b, lastDate: d.lastDate, expand: undefined }); }
+          catch (e) { errors.push({ type: "ats", message: String(e) }); }
+          continue;
+        }
         if (b.expand === "ots-project") {
           if (!checkScope(b.title).inScope) { errors.push({ type: "info", message: `skipped (outside KP/Islamabad): ${b.title.slice(0, 60)}` }); continue; }
           try {

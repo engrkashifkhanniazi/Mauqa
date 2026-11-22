@@ -13,3 +13,11 @@ describe("NTS", () => { it("reads titles and deadlines", () => { const r = parse
   it("flags a page with no rows as broken", () => { expect(parseNts("<html><body>hi</body></html>").broken).toBe(true); }); });
 describe("OTS", () => { it("reads project cards", () => { const r = parseOtsList(OTS); expect(r.items).toHaveLength(1); expect(r.items[0].title).toBe("Islamabad Capital Territory Police"); expect(r.items[0].externalId).toBe("ICT2026A"); expect(r.items[0].expand).toBe("ots-project"); });
   it("reads category deadlines", () => { expect(parseOtsProject(OTSP)).toEqual([{ title: "Assistant Manager / Junior Engineer (Electrical)", lastDate: "2026-11-24" }]); }); });
+import { parseAtsList, parseAtsProject } from "../src/parsers/ats";
+describe("ATS", () => {
+  it("reads project links and the deadline", () => {
+    const r = parseAtsList(`<div><a href="/details/projects/757">Office of the District Population Welfare, Nowshera, KPK</a></div>`);
+    expect(r.items[0].externalId).toBe("757");
+    expect(parseAtsProject(`<body><p>Last Date for submission of Application Forms is 19th November, 2022.</p></body>`).lastDate).toBe("2022-11-19");
+  });
+});

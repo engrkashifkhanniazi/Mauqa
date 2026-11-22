@@ -11,7 +11,7 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 const page = (b: string) => new NextResponse(`<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Paste import</title><body style="font:16px system-ui;padding:16px;max-width:720px;margin:auto">${b}</body>`, { headers: { "content-type": "text/html; charset=utf-8" } });
 type R = Record<string, unknown>;
 const rows = (r: unknown) => ((r as { rows?: R[] }).rows ?? r) as R[];
-const SOURCES = ["ETEA", "FPSC", "KPPSC", "PPSC", "SPSC", "BPSC", "NTS", "OTS", "PTS", "NJP", "Daily Aaj", "Daily Jang", "Nawa-i-Waqt", "Daily Mashriq", "Daily Ausaf", "Daily Express"];
+const SOURCES = ["ETEA", "FPSC", "KPPSC", "PPSC", "SPSC", "BPSC", "NTS", "OTS", "PTS", "ATS", "NJP", "Daily Aaj", "Daily Jang", "Nawa-i-Waqt", "Daily Mashriq", "Daily Ausaf", "Daily Express"];
 
 /** Human-in-the-loop bulk import: the admin copies text from an official page they can open themselves.
  *  Step 1 shows a preview; step 2 publishes only ticked rows, each through evaluate(). Never "Verified". */
