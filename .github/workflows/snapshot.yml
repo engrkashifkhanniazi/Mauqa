@@ -1,13 +1,12 @@
 name: snapshot
-on: { workflow_dispatch: {} }
+on: { workflow_dispatch: { inputs: { url: { description: "url", default: "https://www.fpsc.gov.pk/category/advertisements" } } } }
 jobs:
   run:
     runs-on: ubuntu-latest
     env: { NODE_EXTRA_CA_CERTS: "${{ github.workspace }}/certs/gogetssl-rsa-dv-ssl-ca-2.pem" }
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          UA="RozgarDeskBot/1.0 (+https://rozgardesk.vercel.app; job-aggregator, respects robots.txt)"
-          curl -sS -A "$UA" https://www.fpsc.gov.pk/robots.txt | head -30 || true
-          curl -sS -A "$UA" -o fpsc.html -w "http=%{http_code} bytes=%{size_download}\n" https://www.fpsc.gov.pk/category/advertisements
-          echo ---B64START---; gzip -9c fpsc.html | base64 -w0; echo; echo ---B64END---
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx tsx scripts/snapshot.ts "${{ github.event.inputs.url }}"
