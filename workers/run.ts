@@ -4,6 +4,9 @@ import { politeFetch, sha256 } from "../src/lib/fetcher";
 import { parseEtea } from "../src/parsers/etea";
 import { parseKppsc } from "../src/parsers/kppsc";
 import { parseFpsc } from "../src/parsers/fpsc";
+import { parseNts } from "../src/parsers/nts";
+import { parseOtsList, parseOtsProject } from "../src/parsers/ots";
+import { checkScope } from "../src/pipeline/scope";
 import { evaluate } from "../src/pipeline/rules";
 import { slugify } from "../src/pipeline/normalise";
 import { extractFromImage } from "../src/pipeline/extract";
@@ -16,6 +19,8 @@ const SOURCES: Record<string, { name: string; url: string; parse: (h: string) =>
   ETEA: { name: "ETEA", url: "https://etea.online/", parse: parseEtea },
   KPPSC: { name: "KPPSC", url: "https://www.kppsc.gov.pk/advertisement", parse: parseKppsc },
   FPSC: { name: "FPSC", url: "https://www.fpsc.gov.pk/Jobs?section=GR", parse: parseFpsc },
+  NTS: { name: "NTS", url: "https://www.nts.org.pk/new/projectsnew.php", parse: parseNts },
+  OTS: { name: "OTS", url: "https://www.ots.org.pk/projects.php", parse: parseOtsList },
 };
 const rows = (r: unknown) => ((r as { rows?: unknown[] }).rows ?? r) as Record<string, unknown>[];
 const DRY = process.argv.includes("--dry");
@@ -40,6 +45,16 @@ async function runSource(key: string) {
       if (parsed.emptyState) errors.push({ type: "empty_state", message: "source reports no active advertisements" });
       const expanded: ParsedJob[] = [];
       for (const b of parsed.items) {
+        if (b.expand === "ots-project") {
+          if (!checkScope(b.title).inScope) { errors.push({ type: "info", message: `skipped (outside KP/Islamabad): ${b.title.slice(0, 60)}` }); continue; }
+          try {
+            const pg = await politeFetch(b.officialUrl);
+            const cats = parseOtsProject(pg.text ?? "");
+            if (!cats.length) { errors.push({ type: "info", message: `no categories read for ${b.externalId}; kept for review` }); expanded.push(b); continue; }
+            cats.forEach((c, i) => expanded.push({ sourceKey: "OTS", externalId: `${b.externalId}/${i + 1}`, title: c.title, department: b.title, lastDate: c.lastDate, officialUrl: b.officialUrl, files: [], needsAi: false, fieldsConfirmedAgainstSource: false }));
+          } catch (e) { errors.push({ type: "ots", message: String(e) }); expanded.push(b); }
+          continue;
+        }
         if (b.expand === "kppsc-pdf") {
           try {
             const pdf = await politeFetch(b.officialUrl, { binary: true });
@@ -75,7 +90,7 @@ async function runSource(key: string) {
         if (it.needsAi && !DRY) { try { const img = await politeFetch(it.officialUrl, { binary: true }); facts = await extractFromImage(img.body!, it.officialUrl); } catch (e) { errors.push({ type: "ai", message: String(e) }); } }
         const f2 = facts && "facts" in facts ? facts : null;
         const lastDate = it.lastDate ?? f2?.facts.last_date ?? null;
-        const d = evaluate({ ocrConflict: it.ocrConflict, title: it.title, officialUrl: it.officialUrl, lastDate, aiUsed: !!f2 || !!it.aiRead, aiConfidence: it.aiRead ? it.aiConfidence : f2?.facts.confidence, fieldsConfirmedAgainstSource: it.fieldsConfirmedAgainstSource });
+        const d = evaluate({ regionText: [it.department, it.city].filter(Boolean).join(" "), ocrConflict: it.ocrConflict, title: it.title, officialUrl: it.officialUrl, lastDate, aiUsed: !!f2 || !!it.aiRead, aiConfidence: it.aiRead ? it.aiConfidence : f2?.facts.confidence, fieldsConfirmedAgainstSource: it.fieldsConfirmedAgainstSource });
         if (f2 && !f2.facts.is_recruitment_ad) d.action = "reject";
         fresh++; if (DRY) continue;
         const slug = slugify(it.title, it.externalId);

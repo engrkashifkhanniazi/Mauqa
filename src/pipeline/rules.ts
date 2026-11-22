@@ -1,9 +1,10 @@
+import { checkScope } from "./scope";
 export interface Candidate {
   title?: string | null; officialUrl?: string | null; lastDate?: string | null; noDeadlineStated?: boolean;
-  aiUsed?: boolean; ocrConflict?: boolean; aiConfidence?: number | null; conflictsWithExisting?: boolean; fieldsConfirmedAgainstSource?: boolean;
+  regionText?: string; aiUsed?: boolean; ocrConflict?: boolean; aiConfidence?: number | null; conflictsWithExisting?: boolean; fieldsConfirmedAgainstSource?: boolean;
 }
 export type Decision = { action: "publish" | "quarantine" | "reject"; verified: boolean; reasons: string[] };
-export const ALLOWED_DOMAINS = ["etea.online", "kppsc.gov.pk", "fpsc.gov.pk", "mashriqtv.pk", "e.jang.com.pk", "nawaiwaqt.com.pk", "epaper.dailyaaj.com.pk", "dailyausaf.com", "express.com.pk"];
+export const ALLOWED_DOMAINS = ["etea.online", "kppsc.gov.pk", "fpsc.gov.pk", "mashriqtv.pk", "e.jang.com.pk", "nawaiwaqt.com.pk", "epaper.dailyaaj.com.pk", "dailyausaf.com", "express.com.pk", "etea.edu.pk", "nts.org.pk", "ots.org.pk", "pts.org.pk", "njp.gov.pk"];
 const NON_JOB = /\b(result|admit card|roll no|interview schedule|answer key|date sheet|merit list|notice of|corrigendum only)\b/i;
 
 export function hostAllowed(url: string, allowed = ALLOWED_DOMAINS) {
@@ -13,6 +14,7 @@ export function hostAllowed(url: string, allowed = ALLOWED_DOMAINS) {
 export function evaluate(c: Candidate, today = new Date()): Decision {
   const reasons: string[] = [];
   if (c.title && NON_JOB.test(c.title)) return { action: "reject", verified: false, reasons: ["non-job notice"] };
+  if (c.regionText !== undefined) { const sc = checkScope(c.title, c.regionText); if (!sc.inScope) return { action: "reject", verified: false, reasons: [sc.reason] }; }
   if (!c.title?.trim()) reasons.push("missing title");
   if (!c.officialUrl) reasons.push("missing source url");
   else if (!hostAllowed(c.officialUrl)) reasons.push("source url not on allowed domain");

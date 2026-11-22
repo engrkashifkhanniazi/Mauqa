@@ -9,7 +9,7 @@ import { sha256 } from "@/lib/fetcher";
 
 const blank = (v: unknown) => (v === "" ? undefined : v);
 const Body = z.object({
-  source: z.enum(["ETEA", "FPSC", "KPPSC", "PPSC", "SPSC", "BPSC", "NTS", "Daily Aaj", "Daily Jang", "Nawa-i-Waqt", "Daily Mashriq", "Daily Ausaf", "Daily Express"]),
+  source: z.enum(["ETEA", "FPSC", "KPPSC", "PPSC", "SPSC", "BPSC", "NTS", "OTS", "PTS", "NJP", "Daily Aaj", "Daily Jang", "Nawa-i-Waqt", "Daily Mashriq", "Daily Ausaf", "Daily Express"]),
   title: z.string().trim().min(5).max(200),
   department: z.preprocess(blank, z.string().trim().max(200).optional()),
   bps: z.preprocess(blank, z.coerce.number().int().min(1).max(22).optional()),
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const p = Body.safeParse(Object.fromEntries((await req.formData()).entries()));
   if (!p.success) return NextResponse.json({ error: "invalid input", issues: p.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`) }, { status: 400 });
   const b = p.data;
-  const d = evaluate({ title: b.title, officialUrl: b.officialUrl, lastDate: b.lastDate, fieldsConfirmedAgainstSource: false });
+  const d = evaluate({ regionText: [b.department, b.city].filter(Boolean).join(" "), title: b.title, officialUrl: b.officialUrl, lastDate: b.lastDate, fieldsConfirmedAgainstSource: false });
   if (d.action !== "publish") return NextResponse.json({ error: "rules engine refused", reasons: d.reasons }, { status: 422 });
   const sr = rows(await db().execute(sql`insert into sources (key, name, base_url) values (${b.source}, ${b.source}, ${b.officialUrl}) on conflict (key) do update set key = excluded.key returning id`))[0];
   const slug = slugify(b.title, b.lastDate + "-" + sha256(b.officialUrl + b.title).slice(0, 6));

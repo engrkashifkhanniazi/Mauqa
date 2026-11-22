@@ -54,7 +54,7 @@ async function main() {
           const ads = await extractPageAds(buf); adsFound += ads.length;
           const url = paper.pageUrl(t, n);
           for (const a of ads) {
-            const dec = evaluate({ title: a.title, officialUrl: url, lastDate: a.last_date, aiUsed: true, aiConfidence: a.confidence });
+            const dec = evaluate({ regionText: [a.department, a.city].filter(Boolean).join(" "), title: a.title, officialUrl: url, lastDate: a.last_date, aiUsed: true, aiConfidence: a.confidence });
             if (dec.action === "reject" || DRY) continue;
             const slug = slugify(a.title, `${paper.key}-${a.last_date ?? d}-${sha256(a.title + (a.department ?? "")).slice(0, 6)}`);
             const ins = rows(await db().execute(sql`insert into jobs (slug, title, department, source_id, province, city, bps, vacancies, education, last_date, status, confidence, official_url, dedupe_key, content_hash, verified_at)
