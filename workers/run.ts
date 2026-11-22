@@ -25,7 +25,7 @@ const SOURCES: Record<string, { name: string; url: string; parse: (h: string) =>
 const rows = (r: unknown) => ((r as { rows?: unknown[] }).rows ?? r) as Record<string, unknown>[];
 const DRY = process.argv.includes("--dry");
 // ETEA returns 403 to our host (GitHub Actions) as of 2026-11-22; we do not bypass it. Override with PAUSED_SOURCES="" once access is granted.
-const PAUSED = (process.env.PAUSED_SOURCES ?? "ETEA").split(",").filter(Boolean);
+const PAUSED = (process.env.PAUSED_SOURCES ?? "ETEA,OTS").split(",").filter(Boolean);
 const only = process.argv.find((a) => a.startsWith("--source="))?.split("=")[1];
 
 async function runSource(key: string) {
