@@ -1,0 +1,11 @@
+name: live-check
+on: { workflow_dispatch: { inputs: { base: { description: "base url", default: "https://rozgardesk.vercel.app" } } } }
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          B="${{ github.event.inputs.base }}"
+          for p in "/api/jobs?limit=3&x=$RANDOM" "/" "/robots.txt" "/sitemap.xml" "/privacy" "/admin"; do
+            echo "== $p"; curl -s -o /tmp/o -w "http=%{http_code} bytes=%{size_download} ttfb=%{time_starttransfer}s\n" -H "cache-control: no-cache" "$B$p"; head -c 400 /tmp/o; echo
+          done
