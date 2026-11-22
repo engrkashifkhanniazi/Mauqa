@@ -3,7 +3,7 @@ export interface Candidate {
   aiUsed?: boolean; ocrConflict?: boolean; aiConfidence?: number | null; conflictsWithExisting?: boolean; fieldsConfirmedAgainstSource?: boolean;
 }
 export type Decision = { action: "publish" | "quarantine" | "reject"; verified: boolean; reasons: string[] };
-export const ALLOWED_DOMAINS = ["etea.online", "kppsc.gov.pk", "fpsc.gov.pk"];
+export const ALLOWED_DOMAINS = ["etea.online", "kppsc.gov.pk", "fpsc.gov.pk", "mashriqtv.pk"];
 const NON_JOB = /\b(result|admit card|roll no|interview schedule|answer key|date sheet|merit list|notice of|corrigendum only)\b/i;
 
 export function hostAllowed(url: string, allowed = ALLOWED_DOMAINS) {

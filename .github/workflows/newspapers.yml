@@ -1,0 +1,16 @@
+name: newspapers
+on: { schedule: [{ cron: "40 4 * * *" }], workflow_dispatch: { inputs: { dry: { description: "dry run (no DB writes)", default: "false" } } } }
+concurrency: newspapers
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env: { DATABASE_URL: "${{ secrets.DATABASE_URL }}", ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}", CLAUDE_MONTHLY_BUDGET_USD: "${{ secrets.CLAUDE_MONTHLY_BUDGET_USD }}" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx tsx workers/newspapers.ts ${{ github.event.inputs.dry == 'true' && '--dry' || '' }}
+      - run: npx tsx workers/newspapers.ts --probe
+        if: github.event_name == 'workflow_dispatch'
