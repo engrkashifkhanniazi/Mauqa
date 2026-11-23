@@ -7,7 +7,7 @@ const rows = (r: unknown) => ((r as { rows?: unknown[] }).rows ?? r) as Record<s
 const normTitle = (t: string) => t.toLowerCase().replace(/\s*[-–]\s*20\d\d\s*$/, "").replace(/[^a-z0-9]+/g, " ").trim();
 export async function POST(req: NextRequest) {
   if (!isAdmin(req.cookies.get("rd_admin")?.value)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const list = rows(await db().execute(sql`select id, source_id, title, department, last_date from jobs where status = 'published' order by id`));
+  const list = rows(await db().execute(sql`select id, source_id, title, department, last_date, bps, vacancies from jobs where status = 'published' order by id`));
   // group by source + title + last date; inside a group keep one row per department, and drop blank-department rows when a filled one exists
   const groups = new Map<string, Record<string, unknown>[]>();
   for (const j of list) { const k = [j.source_id, normTitle(String(j.title)), String(j.last_date ?? "").slice(0, 10)].join("|"); groups.set(k, [...(groups.get(k) ?? []), j]); }
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const keepDept = new Set<string>();
     for (const j of g) {
       const d = normTitle(String(j.department ?? ""));
-      if (!d && filled.length) { hide.push(Number(j.id)); continue; }
+      if (!d && filled.length && j.bps == null && j.vacancies == null) { hide.push(Number(j.id)); continue; }
       if (keepDept.has(d)) { hide.push(Number(j.id)); continue; }
       keepDept.add(d);
     }
