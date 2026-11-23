@@ -64,6 +64,8 @@ export default async function Admin() {
       <section className="a1-card" id="tools"><h2>Keep to Khyber Pakhtunkhwa and Islamabad</h2><p className="nt">Hides live listings that name another province. Nothing is deleted.</p>
         <form method="post" action="/api/admin/scope-clean"><button className="a1-btn o" type="submit">Hide other-province listings</button></form>
         <h2>Remove duplicate listings</h2><p className="nt">Same post, same source and last date listed twice: keeps one, hides the rest.</p>
-        <form method="post" action="/api/admin/dedupe"><button className="a1-btn o" type="submit">Hide duplicates</button></form></section>
+        <form method="post" action="/api/admin/dedupe"><button className="a1-btn o" type="submit">Hide duplicates</button></form>
+        <h2>Make ad pictures clearer</h2><p className="nt">Enlarges and sharpens every saved ad picture once. New pictures are made clearer automatically.</p>
+        <form method="post" action="/api/admin/enhance"><button className="a1-btn o" type="submit">Make pictures clearer</button></form></section>
     </main></div>);
 }
