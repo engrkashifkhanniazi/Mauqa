@@ -1,6 +1,6 @@
-# Rozgar Desk
+# Mauqa
 
-Pakistani government job aggregator. Live: https://rozgardesk.vercel.app
+Pakistani government job aggregator (formerly Rozgar Desk). Live: https://mauqa.vercel.app
 
 Stack: Next.js App Router, TypeScript, plain CSS tokens, Drizzle + Neon Postgres, Zod, Vitest, Playwright, GitHub Actions.
 

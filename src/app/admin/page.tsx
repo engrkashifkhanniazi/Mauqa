@@ -16,7 +16,7 @@ const NAV: [string, string, string][] = [["#top", "Overview", "M3 11l9-7 9 7v9H3
 export default async function Admin() {
   if (!isAdmin((await cookies()).get("rd_admin")?.value)) return (
     <main className="a1" dir="ltr" lang="en" style={{ alignItems: "center", justifyContent: "center" }}><form method="post" action="/api/admin/login" className="a1-card" style={{ width: "min(400px,92vw)" }}>
-      <h1 style={{ fontSize: 24 }}>Rozgar Desk admin</h1>
+      <h1 style={{ fontSize: 24 }}>Mauqa admin</h1>
       <label htmlFor="pw">Password<input id="pw" name="password" type="password" required autoComplete="current-password" /></label>
       <button className="a1-btn" type="submit">Sign in</button></form></main>);
   if (!hasDb()) return <main className="a1" dir="ltr" lang="en"><div className="a1-main"><h1>Admin</h1><p>DATABASE_URL is not set.</p></div></main>;
@@ -33,7 +33,7 @@ export default async function Admin() {
   const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Karachi" });
   return (<div className="a1" dir="ltr" lang="en">
     <nav className="a1-side" aria-label="Admin">
-      <a className="a1-brand" href="/"><span>R</span>Rozgar Desk</a>
+      <a className="a1-brand" href="/"><span>M</span>Mauqa</a>
       {NAV.map(([h, l, d]) => <a key={h} className="l" href={h}><I d={d} />{l}</a>)}
       <div className="a1-spend">AI spend this month<div className="a1-meter"><i style={{ width: `${Math.min(100, (usd / cap) * 100)}%` }} /></div>${usd.toFixed(2)} of ${cap} cap · {String(spend[0]?.calls ?? 0)} calls</div>
     </nav>

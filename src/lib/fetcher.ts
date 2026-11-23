@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-export const UA = "RozgarDeskBot/1.0 (+https://github.com/engrkashifkhanniazi/rozgardesk; job-listing aggregator, links to official sources)";
+export const UA = "MauqaBot/1.0 (+https://github.com/engrkashifkhanniazi/rozgardesk; job-listing aggregator, links to official sources)";
 const lastHit = new Map<string, number>();
 const robotsCache = new Map<string, string[] | null>();
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -16,7 +16,7 @@ export function parseRobots(txt: string): string[] {
   for (const raw of txt.split(/\r?\n/)) {
     const l = raw.replace(/#.*/, "").trim(); if (!l) continue;
     const [k, ...v] = l.split(":"); const key = k.toLowerCase(); const val = v.join(":").trim();
-    if (key === "user-agent") applies = val === "*" || /rozgardeskbot/i.test(val);
+    if (key === "user-agent") applies = val === "*" || /mauqabot/i.test(val);
     else if (applies && key === "disallow" && val) dis.push(val);
   }
   return dis;

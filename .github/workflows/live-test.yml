@@ -1,5 +1,5 @@
 name: live-test
-on: { workflow_dispatch: { inputs: { base: { description: "base url", default: "https://rozgardesk.vercel.app" } } } }
+on: { workflow_dispatch: { inputs: { base: { description: "base url", default: "https://mauqa.vercel.app" } } } }
 jobs:
   run:
     runs-on: ubuntu-latest

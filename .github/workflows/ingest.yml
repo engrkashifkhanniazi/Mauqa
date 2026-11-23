@@ -16,4 +16,4 @@ jobs:
       - run: npm run worker -- ${{ github.event.inputs.dry == 'true' && '--dry' || '' }}
       - name: Health check
         run: |
-          npx tsx workers/health.ts 2> health.txt || { gh issue create --title "Rozgar Desk source health alert" --body "$(cat health.txt)" || true; }
+          npx tsx workers/health.ts 2> health.txt || { gh issue create --title "Mauqa source health alert" --body "$(cat health.txt)" || true; }

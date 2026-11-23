@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-const SITE = "https://rozgardesk.vercel.app";
+const SITE = "https://mauqa.vercel.app";
 
 test("home loads with real FPSC listings and no console errors", async ({ page }) => {
   const errs: string[] = []; page.on("pageerror", (e) => errs.push(String(e))); page.on("console", (m) => m.type() === "error" && errs.push(m.text()));
@@ -47,6 +47,6 @@ test("admin page asks for a password; privacy page exists", async ({ page }) => 
 });
 test("robots and sitemap point at the live domain and list real job pages", async ({ request }) => {
   const r = await (await request.get("/robots.txt")).text(); expect(r).toContain(SITE + "/sitemap.xml"); expect(r).toContain("Disallow: /admin");
-  const s = await (await request.get("/sitemap.xml")).text(); expect(s).toContain(SITE + "/jobs/"); expect(s).not.toContain("rozgar-desk.vercel.app");
+  const s = await (await request.get("/sitemap.xml")).text(); expect(s).toContain(SITE + "/jobs/"); expect(s).not.toContain("rozgardesk.vercel.app");
   expect(s).not.toMatch(/\/jobs\/[^<]*\/[^<]*<\/loc>/);
 });

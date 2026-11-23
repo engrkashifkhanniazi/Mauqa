@@ -3,10 +3,10 @@ import "./globals.css";
 import AdminLink from "@/components/AdminLink";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://rozgardesk.vercel.app"),
-  title: { default: "Rozgar Desk | Pakistan government jobs in one place", template: "%s | Rozgar Desk" },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://mauqa.vercel.app"),
+  title: { default: "Mauqa | Pakistan government jobs in one place", template: "%s | Mauqa" },
   description: "FPSC, KPPSC, ETEA and newspaper job advertisements in one place, each linked to the official source.",
-  openGraph: { title: "Rozgar Desk", description: "Pakistan government jobs linked to official advertisements.", type: "website", siteName: "Rozgar Desk" },
+  openGraph: { title: "Mauqa", description: "Pakistan government jobs linked to official advertisements.", type: "website", siteName: "Mauqa" },
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#0A2620" };
 
