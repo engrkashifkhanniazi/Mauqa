@@ -94,3 +94,101 @@ dialog{border:0;padding:0;background:transparent;max-width:none;max-height:none;
 html[lang="ur"] body{font-family:"Noto Nastaliq Urdu",var(--body);line-height:2}
 html[lang="ur"] .card h3,html[lang="ur"] .ad h3{line-height:1.8}
 .rail h3,.rail .rh{font:600 12px var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 6px;display:block}
+/* ===== Redesign (Nov 2026): U2 English, U3 Urdu, A1 admin ===== */
+@font-face{font-family:"Jameel Noori Nastaleeq";src:local("Jameel Noori Nastaleeq"),local("Jameel Noori Nastaleeq Regular"),url(/fonts/jameel-noori.woff2) format("woff2");font-display:swap}
+html[lang="ur"] body{font-family:"Jameel Noori Nastaleeq","Noto Nastaliq Urdu",serif;line-height:1.9}
+.u-wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+.u-search{display:flex;flex-wrap:wrap;gap:10px;max-width:760px;margin-top:22px}
+.u-search input{flex:1 1 280px;min-height:54px;border-radius:14px;border:0;padding:0 18px;background:#fff;color:#0F1F1A;font-size:16px}
+.u-search button{min-height:54px;padding:0 26px;border-radius:14px;border:0;background:#F2C14E;color:#1A1500;font-weight:700;font-size:16px;cursor:pointer}
+.u-lang{min-height:40px;padding:0 16px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:transparent;color:inherit;cursor:pointer;font-weight:600}
+.u-rail{flex:1 1 220px;max-width:260px;display:flex;flex-direction:column;gap:22px}
+.u-rail fieldset{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.u-rail legend{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#56706A;margin-bottom:8px}
+.u-rail label{display:flex;gap:10px;align-items:center;font-size:14.5px;cursor:pointer}.u-rail .c{margin-inline-start:auto;font-size:12px;color:#7A918A}
+.u-rail input{accent-color:#0E6B4D;width:17px;height:17px}
+.u-clear{align-self:flex-start;min-height:40px;padding:0 14px;border-radius:10px;border:1px solid #CFDDD7;background:#fff;cursor:pointer;font-weight:600}
+.u-bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px}
+.u-bar select{min-height:42px;border-radius:10px;border:1px solid #DDE7E2;padding:0 10px;background:#fff;color:#0F1F1A}
+.u-sv{width:40px;height:40px;border-radius:10px;border:1px solid #DDE7E2;background:#fff;color:#56706A;display:grid;place-items:center;cursor:pointer;flex:none}
+.u-sv[aria-pressed="true"]{background:#0E6B4D;color:#fff;border-color:#0E6B4D}
+.u-empty{padding:30px;border-radius:14px;border:1px dashed #CFDDD7;text-align:center;color:#56706A}
+.u-alert{margin-top:26px;border-radius:20px;background:#0E6B4D;color:#fff;padding:26px;display:flex;flex-wrap:wrap;gap:18px;align-items:center}
+.u-alert h3{font-size:22px}.u-alert p{color:#CFEBDD;margin-top:4px}
+.u-alert form{display:flex;gap:8px;flex-wrap:wrap;margin-inline-start:auto}
+.u-alert input{min-height:48px;border-radius:12px;border:0;padding:0 14px;min-width:220px;color:#0F1F1A;background:#fff}
+.u-alert button{min-height:48px;padding:0 20px;border-radius:12px;border:0;background:#F2C14E;color:#1A1500;font-weight:700;cursor:pointer}
+.u-msg{flex-basis:100%;margin:0;font-size:14px;color:#CFEBDD}
+.u-foot{padding:26px 0 40px;color:#56706A;font-size:14px;border-top:1px solid #DDE7E2;margin-top:40px}
+/* U2 English */
+.u2{background:#F4F8F6;color:#0F1F1A;font-family:"Plus Jakarta Sans",var(--body);min-height:100vh}
+.u2 h1,.u2 h2,.u2 h3{font-family:"Plus Jakarta Sans",var(--display);letter-spacing:-.01em}
+.u2-top{background:#0E6B4D;color:#fff}
+.u2-nav{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;padding-top:18px;padding-bottom:18px}
+.u2-logo{font-size:22px;font-weight:800;color:#fff;text-decoration:none}
+.u2-nav nav{display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-size:15px}.u2-nav nav a{color:#DDF1E8;text-decoration:none}.u2-nav nav a:hover{color:#fff}
+.u2-hero{padding-top:26px;padding-bottom:44px}.u2-hero h1{font-size:clamp(28px,4.2vw,42px);font-weight:800;max-width:22ch;line-height:1.15}.u2-hero p{color:#CFEBDD;margin-top:10px;max-width:60ch}
+.u2-main{display:flex;flex-wrap:wrap;gap:28px;padding-top:30px;padding-bottom:20px}
+.u2-list{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.u2-row{display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:18px 20px;background:#fff;border:1px solid #DDE7E2;border-radius:16px}
+.u2-row:hover{border-color:#9CC5B6}
+.u2-ic{width:52px;height:52px;border-radius:12px;background:#E5F2EC;display:grid;place-items:center;color:#0E6B4D;flex:none}
+.u2-tx{flex:1 1 240px;min-width:0}.u2-tx h3{font-size:17px;font-weight:700}.u2-tx h3 button{all:unset;cursor:pointer}.u2-tx h3 button:hover{color:#0E6B4D;text-decoration:underline}
+.u2-tx p{margin-top:3px;font-size:14px;color:#56706A}.u2-src{display:inline-block;margin-top:6px;font-size:12px;font-weight:600;color:#7A918A}
+.u2-tags{display:flex;gap:6px;flex-wrap:wrap}.u2-tags span{padding:5px 10px;border-radius:8px;background:#F1F6F4;font-size:12.5px;font-weight:600}
+.u2-date{display:flex;flex-direction:column;min-width:120px;text-align:end}.u2-date small{font-size:12px;color:#56706A}.u2-date b{font-size:14px}
+.u2-date em{font-style:normal;font-size:12px;font-weight:600;color:#56706A}.u2-date em.hot{color:#B42318}
+.u2-act{display:flex;gap:8px;align-items:center}
+.u2-view{min-height:40px;padding:0 16px;border-radius:10px;border:0;background:#0E6B4D;color:#fff;font-weight:600;cursor:pointer}
+/* U3 Urdu */
+.u3{background:#FBF7EF;color:#1C1914;min-height:100vh;font-family:"Jameel Noori Nastaleeq","Noto Nastaliq Urdu",serif}
+.u3 h1,.u3 h2,.u3 h3{font-family:inherit;letter-spacing:0}
+.u3-nav{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;padding-top:16px;padding-bottom:16px}
+.u3-logo{font-size:30px;color:#1C1914;text-decoration:none}
+.u3-nav nav{display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-size:18px}.u3-nav nav a{color:#1C1914;text-decoration:none}
+.u3-nav .u-lang{border-color:#C9BFAA;font-family:"Plus Jakarta Sans",sans-serif;font-size:14px}
+.u3-hero{border-radius:28px;background:#1E3A34;color:#F6F1E7;padding:clamp(24px,4vw,44px)}
+.u3-hero h1{font-size:clamp(28px,4vw,44px);line-height:1.9}.u3-hero p{font-size:19px;color:#C9D6CF;line-height:2}
+.u3 .u-search input{font-family:inherit;font-size:19px}.u3 .u-search button{background:#E9B949;color:#1C1914;font-family:inherit;font-size:19px}
+.u3-main{padding-top:24px;padding-bottom:20px;display:flex;flex-direction:column;gap:18px}
+.u3-chips{display:flex;gap:10px;flex-wrap:wrap}.u3-chips button{min-height:42px;padding:0 18px;border-radius:999px;border:0;background:#F1EADC;cursor:pointer;font-size:17px}
+.u3-chips button[aria-pressed="true"]{background:#1E3A34;color:#F6F1E7}
+.u3-body{display:flex;flex-wrap:wrap;gap:28px}.u3-body>section{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.u3 .u-rail legend{font-size:15px;letter-spacing:0;text-transform:none}.u3 .u-rail label{font-size:17px}.u3 .u-rail input{accent-color:#1E3A34}
+.u3 .u-clear,.u3 .u-bar select,.u3 .u-alert input,.u3 .u-alert button{font-family:inherit}
+.u3-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.u3-card{padding:20px;border-radius:18px;background:#fff;border:1px solid #E8E1D4;display:flex;flex-direction:column;gap:10px}
+.u3-cap{display:flex;justify-content:space-between;align-items:center;font:600 12px "Plus Jakarta Sans",sans-serif;color:#7A6E58}
+.u3-card h3{font-size:22px;line-height:1.7}.u3-card h3 button{all:unset;cursor:pointer}.u3-card h3 button:hover{color:#1E3A34;text-decoration:underline}
+.u3-card p{font-size:17px;color:#6A6253;line-height:1.8}
+.u3-tags{display:flex;flex-wrap:wrap;gap:8px}.u3-tags span{padding:3px 12px;border-radius:999px;background:#F4EEE2;font-size:15px}
+.u3-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:10px;border-top:1px dashed #E2D9C7;font-size:16px}
+.u3-foot button{min-height:42px;padding:0 18px;border-radius:10px;border:0;background:#1E3A34;color:#F6F1E7;cursor:pointer;font-family:inherit;font-size:17px}
+.u3 .u-alert{background:#1E3A34}.u3 .u-foot{border-color:#E8E1D4;color:#6A6253;font-size:16px}
+@media (max-width:760px){.u-rail{max-width:none;flex-basis:100%}.u2-date{text-align:start}.u-alert form{width:100%}.u-alert input{flex:1;min-width:0}}
+/* A1 admin */
+.a1{display:flex;flex-wrap:wrap;min-height:100vh;background:#0E131B;color:#E6EAF0;font-family:Inter,"DM Sans",sans-serif;color-scheme:dark}
+.a1 h1,.a1 h2{font-family:"Space Grotesk",var(--display);letter-spacing:-.01em}
+.a1-side{flex:1 1 240px;max-width:260px;padding:24px 16px;border-inline-end:1px solid #1E2531;display:flex;flex-direction:column;gap:4px}
+.a1-brand{display:flex;gap:10px;align-items:center;padding:4px 10px 22px;font:700 18px "Space Grotesk",sans-serif;color:#E6EAF0;text-decoration:none}
+.a1-brand span{width:34px;height:34px;border-radius:10px;background:#4C8DFF;display:grid;place-items:center;color:#0E131B}
+.a1-side a.l{display:flex;gap:12px;align-items:center;padding:11px 14px;border-radius:10px;text-decoration:none;color:#9AA4B2;font-size:14px;font-weight:500}.a1-side a.l:hover{background:#1C2330;color:#F5F7FA}
+.a1-spend{margin-top:auto;padding:14px;border-radius:12px;background:#151B25;font-size:13px;color:#9AA4B2}
+.a1-meter{margin:8px 0 6px;height:6px;border-radius:6px;background:#222A36}.a1-meter i{display:block;height:6px;border-radius:6px;background:#4C8DFF}
+.a1-main{flex:999 1 560px;min-width:0;padding:32px clamp(16px,3vw,40px);display:flex;flex-direction:column;gap:24px}
+.a1-head{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center}.a1-head p{color:#8A94A3;font-size:13px}.a1-head h1{font-size:30px;margin-top:4px}
+.a1-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px}
+.a1-kpi div{padding:18px;border-radius:14px;background:#151B25;border:1px solid #1E2531}.a1-kpi span{color:#8A94A3;font-size:13px}.a1-kpi b{display:block;font:700 28px "Space Grotesk",sans-serif;margin-top:8px}
+.a1-card{padding:24px;border-radius:16px;background:#151B25;border:1px solid #1E2531;display:flex;flex-direction:column;gap:16px}
+.a1-card h2{font-size:18px}.a1-card .nt,.a1 .nt{color:#8A94A3;font-size:13px}
+.a1-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.a1 label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:#9AA4B2;font-weight:500}
+.a1 input:not([type=file]),.a1 select,.a1 textarea{padding:11px 12px;border-radius:9px;border:1px solid #2A3342;background:#0E131B;color:#E6EAF0;font-size:14px;min-height:44px}
+.a1 input[type=file]{padding:18px;border:1.5px dashed #34405A;border-radius:12px;background:#111826;color:#9AA4B2}
+.a1-btn{align-self:flex-start;min-height:44px;padding:0 18px;border-radius:10px;border:0;background:#4C8DFF;color:#0B1220;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.a1-btn.o{background:transparent;border:1px solid #2A3342;color:#E6EAF0}.a1-btn.r{background:#3A1E22;color:#FFB4AB}
+.a1-row{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}.a1-row>.a1-card{flex:2 1 520px;min-width:0}.a1-row>aside{flex:1 1 280px}
+.a1-src{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-top:1px solid #222A36;font-size:14px}
+.a1-src span{display:flex;gap:10px;align-items:center}.a1-src i{width:8px;height:8px;border-radius:50%;background:#F5B544;flex:none}.a1-src i.ok{background:#3DD68C}.a1-src i.err{background:#FF6B6B}
+.a1-src small{font-size:12px;color:#8A94A3;text-align:end}
+.a1-q{padding:14px;border-radius:12px;background:#0E131B;border:1px solid #222A36;display:flex;flex-direction:column;gap:8px}.a1-q a{color:#8FB8FF}

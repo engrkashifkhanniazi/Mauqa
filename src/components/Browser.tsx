@@ -1,12 +1,17 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ALL_SOURCES, GOV, isGov, type JobView } from "@/lib/types";
+import { ALL_SOURCES, type JobView } from "@/lib/types";
 
-const COL: Record<string, string> = { FPSC: "--fpsc", KPPSC: "--kppsc", ETEA: "--etea", PPSC: "--kppsc", SPSC: "--fpsc", BPSC: "--etea", NTS: "--kppsc", OTS: "--etea", PTS: "--fpsc", NJP: "--fpsc", ATS: "--etea" };
-const cv = (s: string) => { const k = COL[s] ?? "--news"; return { ["--c" as string]: `var(${k})`, ["--cs" as string]: `var(${k}-s)` } as React.CSSProperties; };
 const msDay = 864e5;
-const fd = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-const Bm = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M6 4h12v17l-6-4-6 4z" /></svg>;
+const fd = (d: string, ur = false) => d ? new Date(d + "T00:00:00").toLocaleDateString(ur ? "ur-PK" : "en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
+const I = ({ d, s = 18 }: { d: string; s?: number }) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
+const P = { brief: "M3 7h18v13H3zM9 7V5h6v2", bm: "M6 4h12v17l-6-4-6 4z", x: "M6 6l12 12M18 6L6 18", search: "M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14zM20 20l-4-4", clock: "M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18zM12 7v5l3 2" };
+
+/** Text in both designs. Job data itself (titles, departments) stays as published. */
+const T = {
+  en: { nav: ["All jobs", "Newspapers", "Job alerts"], h1: "Government jobs in KP and Islamabad, checked daily", lede: "Commission, testing-service and newspaper ads in one place, each linked to its official source.", ph: "Search by post, department or city", find: "Find jobs", region: "Region", all: "All", kp: "Khyber Pakhtunkhwa", fed: "Islamabad / Federal", pay: "Pay scale", any: "Any", closing: "Closing", within10: "Within 10 days", within21: "Within 3 weeks", source: "Source", show: "Show", savedOnly: "Saved jobs only", clear: "Clear filters", open: "open jobs", soonest: "Closing soonest", most: "Most vacancies", last: "Last date", view: "View", none: "No jobs match these filters.", chips: ["Today's jobs", "Closing soon"], alertH: "Never miss a closing date", alertP: "Get an email when a new advertisement matches your search.", notify: "Notify me", unv: "Unverified", ver: "Verified", sample: "Sample", foot: "Always confirm details on the official advertisement.", how: "How to apply", steps: (s: string) => ["Read the eligibility in the official advertisement.", `Apply on the ${s} portal or as the ad says, before the last date.`, "Keep documents and fee receipt ready."], ad: "Full details and ad picture", left: (n: number) => n < 0 ? "Closed" : `${n} days left`, f: ["Last date", "Time left", "Pay scale", "Vacancies", "Education", "Age", "Location", "Source"], disc: "Rozgar Desk links to the official source and does not accept applications.", toggle: "اردو" },
+  ur: { nav: ["تمام نوکریاں", "اخبارات", "جاب الرٹ"], h1: "خیبر پختونخوا اور اسلام آباد کی سرکاری نوکریاں، ایک جگہ", lede: "اخبارات اور سرکاری اداروں کے اشتہار، ہر ایک کے ساتھ اصل اشتہار کا لنک۔", ph: "عہدہ، محکمہ یا شہر لکھیں", find: "تلاش کریں", region: "علاقہ", all: "سب", kp: "خیبر پختونخوا", fed: "اسلام آباد / وفاقی", pay: "سکیل", any: "کوئی بھی", closing: "آخری تاریخ", within10: "دس دن کے اندر", within21: "تین ہفتوں کے اندر", source: "ذریعہ", show: "دکھائیں", savedOnly: "صرف محفوظ نوکریاں", clear: "فلٹر صاف کریں", open: "نوکریاں موجود ہیں", soonest: "جلد ختم ہونے والی پہلے", most: "زیادہ اسامیاں پہلے", last: "آخری تاریخ", view: "تفصیل", none: "ان فلٹرز کے مطابق کوئی نوکری نہیں ملی۔", chips: ["آج کی نوکریاں", "جلد ختم ہونے والی"], alertH: "کوئی آخری تاریخ نہ چھوٹے", alertP: "نیا اشتہار آنے پر ای میل حاصل کریں۔", notify: "مجھے بتائیں", unv: "غیر تصدیق شدہ", ver: "تصدیق شدہ", sample: "نمونہ", foot: "درخواست سے پہلے اصل اشتہار ضرور دیکھیں۔", how: "درخواست کیسے دیں", steps: (s: string) => ["اصل اشتہار میں اہلیت پڑھیں۔", `آخری تاریخ سے پہلے ${s} کے طریقے کے مطابق درخواست دیں۔`, "کاغذات اور فیس کی رسید تیار رکھیں۔"], ad: "مکمل تفصیل اور اشتہار کی تصویر", left: (n: number) => n < 0 ? "بند ہو چکی" : `${n} دن باقی`, f: ["آخری تاریخ", "باقی وقت", "سکیل", "اسامیاں", "تعلیم", "عمر", "جگہ", "ذریعہ"], disc: "روزگار ڈیسک صرف اصل ذریعے کا لنک دیتا ہے، درخواستیں قبول نہیں کرتا۔", toggle: "English" },
+};
 
 export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boolean }) {
   const [now] = useState(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; });
@@ -14,22 +19,16 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
   const [q, setQ] = useState(""); const [pv, setPv] = useState(""); const [bp, setBp] = useState("");
   const [cl, setCl] = useState(0); const [src, setSrc] = useState<string[]>([]); const [onlySaved, setOnlySaved] = useState(false);
   const [sort, setSort] = useState("d"); const [saved, setSaved] = useState<number[]>([]);
-  const [open, setOpen] = useState<JobView | null>(null); const [dark, setDark] = useState(false); const [ur, setUr] = useState(false);
-  const [msg, setMsg] = useState("");
+  const [open, setOpen] = useState<JobView | null>(null); const [ur, setUr] = useState(false); const [msg, setMsg] = useState("");
   const dlg = useRef<HTMLDialogElement>(null); const closeBtn = useRef<HTMLButtonElement>(null); const lastFocus = useRef<HTMLElement | null>(null);
+  const t = ur ? T.ur : T.en;
 
-  useEffect(() => {
-    try { setSaved(JSON.parse(localStorage.getItem("rdf") || "[]")); } catch {}
-    const r = document.documentElement;
-    setDark(r.dataset.theme === "dark" || (!r.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches));
-    setUr(r.lang === "ur");
-  }, []);
+  useEffect(() => { try { setSaved(JSON.parse(localStorage.getItem("rdf") || "[]")); } catch {} setUr(document.documentElement.lang === "ur"); }, []);
   useEffect(() => { if (open) { lastFocus.current = document.activeElement as HTMLElement; dlg.current?.showModal(); closeBtn.current?.focus(); } }, [open]);
 
   const toggleSave = (id: number) => setSaved((s) => { const n = s.includes(id) ? s.filter((x) => x !== id) : [...s, id]; try { localStorage.setItem("rdf", JSON.stringify(n)); } catch {} return n; });
   const reset = () => { setQ(""); setPv(""); setBp(""); setCl(0); setSrc([]); setOnlySaved(false); };
-  const theme = () => { const r = document.documentElement; const d = !dark; r.dataset.theme = d ? "dark" : "light"; setDark(d); try { localStorage.setItem("rdt", r.dataset.theme); } catch {} };
-  const lang = () => { const r = document.documentElement; const u = !ur; r.lang = u ? "ur" : "en"; r.dir = u ? "rtl" : "ltr"; setUr(u); try { localStorage.setItem("rdl", u ? "ur" : "en"); } catch {} };
+  const lang = () => { const r = document.documentElement; const u = !ur; r.lang = u ? "ur" : "en"; r.dir = u ? "rtl" : "ltr"; setUr(u); try { localStorage.setItem("rdl", u ? "ur" : "en"); } catch {} window.scrollTo({ top: 0 }); };
 
   const filtered = useMemo(() => {
     const ql = q.trim().toLowerCase();
@@ -37,7 +36,8 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
     const by = sort === "v" ? (x: JobView, y: JobView) => (y.vacancies ?? 0) - (x.vacancies ?? 0) : (x: JobView, y: JobView) => x.lastDate.localeCompare(y.lastDate);
     return jobs.filter((j) => {
       if (ql && !(j.title + " " + j.department + " " + j.city).toLowerCase().includes(ql)) return false;
-      if (pv && j.province !== pv) return false;
+      if (pv === "kp" && !/khyber|kp|peshawar/i.test(j.province + " " + j.city)) return false;
+      if (pv === "fed" && !/federal|islamabad/i.test(j.province + " " + j.city)) return false;
       if (bp && (j.bps == null || j.bps < a || j.bps > b)) return false;
       if (cl && left(j) > cl) return false;
       if (src.length && !src.includes(j.source)) return false;
@@ -46,105 +46,90 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
     }).sort(by);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobs, q, pv, bp, cl, src, onlySaved, saved, sort, now]);
-  const gov = filtered.filter((j) => isGov(j.source)); const news = filtered.filter((j) => !isGov(j.source));
-
-  const Due = ({ j }: { j: JobView }) => { const n = left(j); return <span className={`due ${n <= 7 ? "hot" : n <= 14 ? "soon" : "ok"}`}>{n < 0 ? "Closed" : `${n} days left`}</span>; };
-  const Sv = ({ j }: { j: JobView }) => <button className="sv" type="button" aria-pressed={saved.includes(j.id)} aria-label={`Save ${j.title}`} onClick={() => toggleSave(j.id)}><Bm /></button>;
-  const Ob = ({ j }: { j: JobView }) => <button className="openb" type="button" onClick={() => setOpen(j)}>{j.title}</button>;
   const count = (s: string) => jobs.filter((j) => j.source === s).length;
-  const scrollGov = () => document.getElementById("gov")?.scrollIntoView({ behavior: "smooth" });
+  const toList = () => document.getElementById("jobs")?.scrollIntoView({ behavior: "smooth" });
+  const badge = (j: JobView) => j.verified ? t.ver : sample ? t.sample : t.unv;
+  const Save = ({ j }: { j: JobView }) => <button className="u-sv" type="button" aria-pressed={saved.includes(j.id)} aria-label={`Save ${j.title}`} onClick={() => toggleSave(j.id)}><I d={P.bm} s={16} /></button>;
+
+  const search = (
+    <form className="u-search" role="search" onSubmit={(e) => { e.preventDefault(); toList(); }}>
+      <label className="sr" htmlFor="q">{t.ph}</label>
+      <input id="q" type="search" placeholder={t.ph} autoComplete="off" value={q} onChange={(e) => setQ(e.target.value)} />
+      <button type="submit">{t.find}</button>
+    </form>);
+
+  const filters = (
+    <aside className="u-rail" aria-label="Filters">
+      <fieldset><legend>{t.region}</legend>{[["", t.all], ["kp", t.kp], ["fed", t.fed]].map(([v, l]) => <label key={v}><input type="radio" name="pv" checked={pv === v} onChange={() => setPv(v)} />{l}</label>)}</fieldset>
+      <fieldset><legend>{t.pay}</legend>{[["", t.any], ["1-10", "BPS 1–10"], ["11-16", "BPS 11–16"], ["17-22", "BPS 17+"]].map(([v, l]) => <label key={v}><input type="radio" name="bp" checked={bp === v} onChange={() => setBp(v)} /><span dir="ltr">{l}</span></label>)}</fieldset>
+      <fieldset><legend>{t.closing}</legend>{([[0, t.any], [10, t.within10], [21, t.within21]] as const).map(([v, l]) => <label key={v}><input type="radio" name="cl" checked={cl === v} onChange={() => setCl(v)} />{l}</label>)}</fieldset>
+      <fieldset><legend>{t.source}</legend>{ALL_SOURCES.filter((s) => count(s) > 0).map((s) => <label key={s}><input type="checkbox" checked={src.includes(s)} onChange={(e) => setSrc((x) => e.target.checked ? [...x, s] : x.filter((y) => y !== s))} /><span dir="ltr">{s}</span><span className="c">{count(s)}</span></label>)}</fieldset>
+      <fieldset><legend>{t.show}</legend><label><input type="checkbox" checked={onlySaved} onChange={(e) => setOnlySaved(e.target.checked)} />{t.savedOnly}</label></fieldset>
+      <button className="u-clear" type="button" onClick={reset}>{t.clear}</button>
+    </aside>);
+
+  const bar = (<div className="u-bar"><b>{filtered.length} {t.open}</b><label className="sr" htmlFor="so">Sort</label><select id="so" value={sort} onChange={(e) => setSort(e.target.value)}><option value="d">{t.soonest}</option><option value="v">{t.most}</option></select></div>);
+
+  const alerts = (
+    <div className="u-alert" id="alerts"><div><h3>{t.alertH}</h3><p>{t.alertP}</p></div>
+      <form onSubmit={async (e) => { e.preventDefault(); const em = (e.currentTarget.elements.namedItem("em") as HTMLInputElement).value; setMsg("…");
+        try { const r = await fetch("/api/alerts", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: em, query: { q: q || undefined, bps: bp || undefined } }) }); const d = await r.json();
+          setMsg(r.ok ? (d.emailSent ? "Check your inbox to confirm your alert." : d.note ?? "Saved.") : d.error ?? "Something went wrong."); } catch { setMsg("Network error. Try again."); } }}>
+        <label className="sr" htmlFor="em">Email</label><input id="em" name="em" type="email" dir="ltr" placeholder="you@example.com" required /><button type="submit">{t.notify}</button></form>
+      <p role="status" className="u-msg">{msg}</p></div>);
 
   return (
-    <>
-      <a className="skip" href="#gov">Skip to jobs</a>
-      <header className="nav"><div className="wrap">
-        <a className="logo" href="#top"><svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#2FC79A" /><path d="M9 22V10h7.2c3 0 4.8 1.6 4.8 4s-1.8 4-4.8 4H13m4.5 0L22 22" stroke="#04251C" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>Rozgar Desk</a>
-        <a className="l" href="#gov">Government jobs</a><a className="l" href="#papers">Newspaper jobs</a><a className="l" href="#alerts">Alerts</a>
-        <span className="sp" />
-        <button className="nb" type="button" onClick={lang} lang={ur ? "en" : "ur"}>{ur ? "English" : "اردو"}</button>
-        <button className="nb h" type="button" onClick={theme} aria-pressed={dark}>{dark ? "Light" : "Dark"}</button>
-        <a className="nb s" href="#alerts">Get alerts</a>
-      </div></header>
-
-      <main id="top">
-        <section className="hero"><div className="wrap">
-          <span className="tag"><span className="dot" />Checked against official advertisements</span>
-          <h1>Government jobs, <em>found and verified.</em></h1>
-          <p className="lede">FPSC, KPPSC, ETEA and major Urdu newspapers in one place, each linked to the official advertisement.</p>
-          <p className="ur" lang="ur">سرکاری ملازمتیں، تصدیق کے ساتھ ایک جگہ</p>
-          <form className="search" role="search" onSubmit={(e) => { e.preventDefault(); scrollGov(); }}>
-            <div className="fd"><label htmlFor="q">Job title or keyword</label><input id="q" type="search" placeholder="e.g. Teacher, Nurse, Inspector" autoComplete="off" value={q} onChange={(e) => setQ(e.target.value)} /></div>
-            <div className="fd"><label htmlFor="pv">Province</label><select id="pv" value={pv} onChange={(e) => setPv(e.target.value)}><option value="">All Pakistan</option><option>Khyber Pakhtunkhwa</option><option>Punjab</option><option>Federal</option></select></div>
-            <div className="fd"><label htmlFor="bp">Pay scale</label><select id="bp" value={bp} onChange={(e) => setBp(e.target.value)}><option value="">Any BPS</option><option value="1-11">BPS 1 to 11</option><option value="12-16">BPS 12 to 16</option><option value="17-22">BPS 17 and above</option></select></div>
-            <button className="go" type="submit">Search jobs</button>
-          </form>
-          <div className="quick"><span>Popular:</span>{["Teacher", "Nurse", "Inspector", "Peshawar"].map((w) => <button key={w} type="button" onClick={() => { setQ(w); scrollGov(); }}>{w}</button>)}</div>
-        </div></section>
-
-        <section className="strip wrap" aria-label="Open jobs by source"><div className="sg">
-          {([["FPSC", "Federal"], ["KPPSC", "Khyber Pakhtunkhwa"], ["ETEA", "Khyber Pakhtunkhwa testing service"], ["NTS", "National Testing Service"], ["OTS", "Open Testing Service"], ["PTS", "Pakistan Testing Service"], ["NJP", "National Jobs Portal"]] as const).map(([s, t]) => <div key={s} className="st" style={{ ["--c" as string]: `var(${COL[s]})` } as React.CSSProperties}><b>{s}</b><span className="n">{count(s)}</span><small>open jobs, {t}</small></div>)}
-          <div className="st" style={{ ["--c" as string]: "var(--news)" } as React.CSSProperties}><b>Newspapers</b><span className="n">{jobs.filter((j) => !isGov(j.source)).length}</span><small>open jobs, Aaj, Jang, Nawa-i-Waqt, Mashriq</small></div>
-        </div></section>
-
-        <div className="wrap main">
-          <aside className="rail" aria-label="Filters">
-            <fieldset style={{ border: 0, padding: 0, margin: 0 }}><legend className="rh">Closing</legend>
-              {[[0, "Any time"], [10, "Within 10 days"], [21, "Within 3 weeks"]].map(([v, l]) => <label key={v} className="opt"><input type="radio" name="cl" checked={cl === v} onChange={() => setCl(v as number)} />{l}</label>)}
-            </fieldset>
-            <fieldset style={{ border: 0, padding: 0, margin: 0 }}><legend className="rh">Source</legend>
-              {ALL_SOURCES.map((s) => <label key={s} className="opt" style={cv(s)}><input type="checkbox" checked={src.includes(s)} onChange={(e) => setSrc((x) => e.target.checked ? [...x, s] : x.filter((y) => y !== s))} /><span className="sw" />{s}<span className="c">{count(s)}</span></label>)}
-            </fieldset>
-            <div><span className="rh">Show</span><label className="opt"><input type="checkbox" checked={onlySaved} onChange={(e) => setOnlySaved(e.target.checked)} />Saved jobs only</label></div>
-            <button className="rs" type="button" onClick={reset}>Clear filters</button>
-          </aside>
-
-          <div>
-            <section id="gov" aria-live="polite">
-              <div className="bar"><h2>Government jobs</h2><span className="ct">{gov.length} {gov.length === 1 ? "job" : "jobs"}</span>
-                <label className="sr" htmlFor="so">Sort</label><select id="so" value={sort} onChange={(e) => setSort(e.target.value)}><option value="d">Closing soonest</option><option value="v">Most vacancies</option></select></div>
-              <div className="grid">
-                {gov.length ? gov.map((j) => (
-                  <article key={j.id} className="card" style={cv(j.source)}>
-                    <div className="cap"><span>{j.source} · {j.province}</span><span className={j.verified ? "ver" : "smp"}>{j.verified ? "Verified" : sample ? "Sample" : "Unverified"}</span></div>
-                    <div className="cb"><div><h3><Ob j={j} /></h3><div className="org">{j.department}</div></div>
-                      <div className="meta">{j.city && <span>{j.city}</span>}{j.vacancies != null && <span>{j.vacancies} vacancies</span>}{j.education && <span>{j.education}</span>}<span>Last date {fd(j.lastDate)}</span></div>
-                      <div className="ft"><span style={{ display: "flex", gap: 8, alignItems: "center" }}>{j.bps != null && <span className="bps">BPS-{j.bps}</span>}<Due j={j} /></span><Sv j={j} /></div></div>
-                  </article>)) : <div className="empty">No government jobs match. Try clearing a filter.</div>}
-              </div>
-            </section>
-
-            <section className="paper" id="papers" aria-live="polite">
-              <div className="mast"><div><h2>Newspaper Jobs</h2><div className="u" lang="ur">اخبارات میں شائع ملازمتیں</div></div><span style={{ fontSize: 13, fontWeight: 600, letterSpacing: ".1em", textTransform: "uppercase" }}>{news.length} {news.length === 1 ? "notice" : "notices"}</span></div>
-              <div className="pcols">
-                {news.length ? news.map((j) => (
-                  <article key={j.id} className="ad"><div className="k">{j.source} · {j.province}</div><h3><Ob j={j} /></h3><div className="o">{j.department}</div>
-                    <div className="m"><b>{j.vacancies} posts</b> in {j.city}. {j.education}. Apply by <b>{fd(j.lastDate)}</b>.</div>
-                    <div className="r">{j.bps != null && <span className="bps">BPS-{j.bps}</span>}<Due j={j} /><Sv j={j} /></div></article>)) : <div className="empty">No newspaper notices match these filters.</div>}
-              </div>
-            </section>
-
-            <div className="alert" id="alerts"><div><h3>Never miss a closing date</h3><p>Get an email when a new advertisement matches your search. No account needed.</p></div>
-              <form onSubmit={async (e) => { e.preventDefault(); const em = (e.currentTarget.elements.namedItem("em") as HTMLInputElement).value; setMsg("Sending...");
-                try { const r = await fetch("/api/alerts", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: em, query: { q: q || undefined, province: pv || undefined, bps: bp || undefined } }) }); const d = await r.json();
-                  setMsg(r.ok ? (d.emailSent ? "Check your inbox to confirm your alert." : d.note ?? "Saved.") : d.error ?? "Something went wrong."); } catch { setMsg("Network error. Try again."); } }}>
-                <label className="sr" htmlFor="em">Email</label><input id="em" name="em" type="email" placeholder="you@example.com" required /><button className="go" type="submit">Notify me</button></form></div>
-            <p className="nt" role="status" style={{ margin: "10px 4px 0" }}>{msg}</p>
-          </div>
+    <div className={ur ? "u3" : "u2"}>
+      <a className="skip" href="#jobs">Skip to jobs</a>
+      {!ur ? (<>
+        <header className="u2-top"><div className="u-wrap u2-nav">
+          <a className="u2-logo" href="#top">Rozgar Desk</a>
+          <nav aria-label="Main">{t.nav.map((n, i) => <a key={n} href={["#jobs", "#jobs", "#alerts"][i]}>{n}</a>)}<button type="button" className="u-lang" lang="ur" onClick={lang}>{t.toggle}</button></nav>
         </div>
-      </main>
-      <footer><div className="wrap"><span>{sample ? "Sample listings for design review, not real advertisements. " : ""}Always confirm details on the official advertisement.</span><span>Sources: FPSC, KPPSC, ETEA</span></div></footer>
+          <div className="u-wrap u2-hero" id="top"><h1>{t.h1}</h1><p>{t.lede}</p>{search}</div></header>
+        <main className="u-wrap u2-main" id="jobs">{filters}
+          <section className="u2-list" aria-live="polite">{bar}
+            {filtered.length ? filtered.map((j) => (
+              <article key={j.id} className="u2-row">
+                <div className="u2-ic"><I d={P.brief} s={22} /></div>
+                <div className="u2-tx"><h3><button type="button" onClick={() => setOpen(j)}>{j.title}</button></h3><p>{[j.department, j.city].filter(Boolean).join(" · ")}</p><span className="u2-src">{j.source} · {badge(j)}</span></div>
+                <div className="u2-tags">{j.bps != null && <span>BPS-{j.bps}</span>}{j.vacancies != null && <span>{j.vacancies} posts</span>}{j.education && <span>{j.education}</span>}</div>
+                <div className="u2-date"><small>{t.last}</small><b>{fd(j.lastDate)}</b><em className={left(j) <= 7 ? "hot" : ""}>{t.left(left(j))}</em></div>
+                <div className="u2-act"><Save j={j} /><button className="u2-view" type="button" onClick={() => setOpen(j)}>{t.view}</button></div>
+              </article>)) : <div className="u-empty">{t.none}</div>}
+            {alerts}
+          </section></main>
+      </>) : (<>
+        <header className="u-wrap u3-nav"><a className="u3-logo" href="#top">روزگار ڈیسک</a>
+          <nav aria-label="Main">{t.nav.map((n, i) => <a key={n} href={["#jobs", "#jobs", "#alerts"][i]}>{n}</a>)}<button type="button" className="u-lang" lang="en" onClick={lang}>{t.toggle}</button></nav></header>
+        <section className="u-wrap" id="top"><div className="u3-hero"><h1>{t.h1}</h1><p>{t.lede}</p>{search}</div></section>
+        <main className="u-wrap u3-main" id="jobs">
+          <div className="u3-chips"><button type="button" aria-pressed={cl === 0 && !pv} onClick={() => { setCl(0); setPv(""); }}>{t.chips[0]}</button><button type="button" aria-pressed={cl === 10} onClick={() => setCl(10)}>{t.chips[1]}</button><button type="button" aria-pressed={pv === "kp"} onClick={() => setPv(pv === "kp" ? "" : "kp")}>{t.kp}</button><button type="button" aria-pressed={pv === "fed"} onClick={() => setPv(pv === "fed" ? "" : "fed")}>{t.fed}</button></div>
+          <div className="u3-body">{filters}
+            <section aria-live="polite">{bar}
+              <div className="u3-grid">{filtered.length ? filtered.map((j) => (
+                <article key={j.id} className="u3-card">
+                  <div className="u3-cap"><span dir="ltr">{j.source}</span><Save j={j} /></div>
+                  <h3 dir="auto"><button type="button" onClick={() => setOpen(j)}>{j.title}</button></h3>
+                  <p dir="auto">{j.department}</p>
+                  <div className="u3-tags">{j.city && <span dir="auto">{j.city}</span>}{j.bps != null && <span dir="ltr">BPS-{j.bps}</span>}{j.education && <span dir="auto">{j.education}</span>}</div>
+                  <div className="u3-foot"><span>{t.last}: <b>{fd(j.lastDate, true)}</b></span><button type="button" onClick={() => setOpen(j)}>{t.view}</button></div>
+                </article>)) : <div className="u-empty">{t.none}</div>}</div>
+              {alerts}
+            </section></div></main>
+      </>)}
+      <footer className="u-foot"><div className="u-wrap">{sample ? "Sample listings for design review. " : ""}{t.foot}</div></footer>
 
       <dialog ref={dlg} aria-labelledby="dT" onClose={() => { setOpen(null); lastFocus.current?.focus(); }} onClick={(e) => { if (!(e.target as HTMLElement).closest(".sheet")) dlg.current?.close(); }}>
         {open && <div className="sheet">
-          <header><h2 id="dT">{open.title}</h2><button ref={closeBtn} className="sv" type="button" aria-label="Close" onClick={() => dlg.current?.close()}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button></header>
-          <div className="bd"><p className="nt">{open.department}.{open.verified ? "" : sample ? " Sample listing for design review." : " Not yet verified. Confirm every detail on the official advertisement."}</p>
-            <div className="fc">{[["Last date", fd(open.lastDate)], ["Time left", `${left(open)} days`], ["Pay scale", open.bps != null ? `BPS-${open.bps}` : ""], ["Vacancies", open.vacancies != null ? String(open.vacancies) : ""], ["Education", open.education], ["Age", open.age], ["Location", open.city], ["Source", open.source]].filter(([, v]) => v).map(([k, v]) => <div key={k}><small>{k}</small><b>{v}</b></div>)}</div>
-            {open.verified && <div className="vf"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /><path d="M8.5 12.5l2.5 2.5 4.5-5" /></svg><div><b>Checked against the official advertisement.</b><br />Details match the {open.source} notice. Confirm eligibility in the original ad before applying.</div></div>}
-            <div><h3 style={{ fontSize: 17, marginBottom: 10 }}>How to apply</h3><ol><li>Read the eligibility in the official advertisement.</li><li>Apply on the {open.source} portal before the last date.</li><li>Keep documents and fee receipt ready.</li></ol></div>
-            <a className="cta" href={open.officialUrl} target="_blank" rel="noopener noreferrer" style={{ textAlign: "center", textDecoration: "none", display: "grid", placeItems: "center" }}>Open official advertisement</a>
-            <p className="nt">Rozgar Desk links to the official source and does not accept applications.</p></div>
+          <header><h2 id="dT" dir="auto">{open.title}</h2><button ref={closeBtn} className="u-sv" type="button" aria-label="Close" onClick={() => dlg.current?.close()}><I d={P.x} /></button></header>
+          <div className="bd"><p className="nt" dir="auto">{open.department}. {badge(open)}</p>
+            <div className="fc">{([[t.f[0], fd(open.lastDate, ur)], [t.f[1], t.left(left(open))], [t.f[2], open.bps != null ? `BPS-${open.bps}` : ""], [t.f[3], open.vacancies != null ? String(open.vacancies) : ""], [t.f[4], open.education], [t.f[5], open.age], [t.f[6], open.city], [t.f[7], open.source]] as const).filter(([, v]) => v).map(([k, v]) => <div key={k}><small>{k}</small><b dir="auto">{v}</b></div>)}</div>
+            <div><h3 style={{ fontSize: 17, marginBottom: 10 }}>{t.how}</h3><ol>{t.steps(open.source).map((s) => <li key={s}>{s}</li>)}</ol></div>
+            <a className="cta" href={`/jobs/${open.slug}`} style={{ textAlign: "center", textDecoration: "none", display: "grid", placeItems: "center" }}>{t.ad}</a>
+            <p className="nt">{t.disc}</p></div>
         </div>}
       </dialog>
-    </>
+    </div>
   );
 }

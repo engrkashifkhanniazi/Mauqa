@@ -17,5 +17,5 @@ export default function AdImageInput() {
       setNote(`Ready: ${(blob.size / 1024).toFixed(0)} KB`);
     } catch { setNote(f.size > 4_000_000 ? "Picture is too big; pick a smaller one." : "Picture attached."); }
   }
-  return (<label htmlFor="add-adImage">Ad picture (optional)<input ref={ref} id="add-adImage" name="adImage" type="file" accept="image/*" onChange={onPick} style={{ display: "block", width: "100%", minHeight: 44 }} /><span className="nt">{note}</span></label>);
+  return (<label htmlFor="add-adImage">Ad picture (optional) · drop or tap to choose, shrinks automatically<input ref={ref} id="add-adImage" name="adImage" type="file" accept="image/*" onChange={onPick} style={{ display: "block", width: "100%" }} /><span className="nt">{note}</span></label>);
 }
