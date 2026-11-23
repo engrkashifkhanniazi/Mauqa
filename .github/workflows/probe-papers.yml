@@ -1,0 +1,15 @@
+name: probe-papers
+on: { workflow_dispatch: {} }
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Can GitHub reach these e-papers
+        run: |
+          UA="Mozilla/5.0 (compatible; RozgarDeskBot/1.0; +https://rozgardesk.vercel.app)"
+          for u in "https://epaper.dailyaaj.com.pk/" "https://www.express.com.pk/epaper/Index.aspx" "https://www.nawaiwaqt.com.pk/E-Paper/islamabad" "https://epaper.dailyausaf.com/"; do
+            code=$(curl -s -o /tmp/p.html -w "%{http_code} bytes=%{size_download}" -A "$UA" -m 25 "$u" || echo "fail")
+            cf=$(grep -ci "just a moment\|cf-chl\|challenge-platform" /tmp/p.html || true)
+            echo "$u -> $code cloudflare_markers=$cf"
+          done
