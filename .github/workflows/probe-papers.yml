@@ -5,13 +5,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Look at Express and Aaj e-paper structure
+      - name: Express Islamabad and Aaj page structure
         run: |
           UA="Mozilla/5.0 (compatible; RozgarDeskBot/1.0; +https://rozgardesk.vercel.app)"
-          echo "=== EXPRESS index"
-          curl -s -A "$UA" -m 25 "https://www.express.com.pk/epaper/Index.aspx" -o /tmp/e.html
-          grep -oE "(href|src|value|onclick)=\"[^\"]*(epaper|NP_|\.jpg|Page)[^\"]*\"" /tmp/e.html | sort -u | head -60
-          echo "=== AAJ home"
+          D=$(TZ=Asia/Karachi date +%Y%m%d)
+          echo "=== EXPRESS ISB $D"
+          curl -s -A "$UA" -m 25 "https://www.express.com.pk/epaper/Index.aspx?Issue=NP_ISB&Page=FRONT_PAGE&Date=$D&Pageno=1&View=1" -o /tmp/i.html
+          wc -c /tmp/i.html
+          grep -oE "(src|href)=\"[^\"]*(NP_ISB|images/[0-9A-Za-z_/-]*\.jpg)[^\"]*\"" /tmp/i.html | sort -u | head -50
+          grep -oiE "[A-Za-z0-9_/.-]*NP_ISB[A-Za-z0-9_/.-]*\.jpg" /tmp/i.html | sort -u | head -30
+          echo "=== AAJ POST"
           curl -s -A "$UA" -m 25 -c /tmp/cj "https://epaper.dailyaaj.com.pk/" -o /tmp/a.html
-          grep -oE "<(form|input|select|option)[^>]*>" /tmp/a.html | head -60
-          grep -oE "(href|src)=\"[^\"]*(epaper|main)[^\"]*\"" /tmp/a.html | sort -u | head -30
+          grep -oiE "csrf[^>]{0,120}" /tmp/a.html | head -5
+          grep -oE "<option[^>]*value=\"[0-9]+\"" /tmp/a.html | tr '\n' ' '; echo
+          grep -oE "epaper/[0-9]*[a-z0-9/]*\.jpg|epaper/pages/[a-z0-9]*\.jpg" /tmp/a.html | sort -u | head
+          for P in 1 16; do
+            curl -s -A "$UA" -m 25 -b /tmp/cj -X POST "https://epaper.dailyaaj.com.pk/main/epaper" -d "epaper_id=7670" -d "epaperpage=$P" -d "epapertype=peshawar" -d "date=11-22-2026" -d "dated=2026-11-22" -o /tmp/p$P.html -w "POST page $P -> %{http_code} bytes=%{size_download}\n"
+            grep -oE "https://epaper.dailyaaj.com.pk/[^\"' ]*\.jpg" /tmp/p$P.html | sort -u | head -8
+          done
