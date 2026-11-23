@@ -193,3 +193,25 @@ html[lang="ur"] body{font-family:"Jameel Noori Nastaleeq","Plus Jakarta Sans","N
 .a1-src span{display:flex;gap:10px;align-items:center}.a1-src i{width:8px;height:8px;border-radius:50%;background:#F5B544;flex:none}.a1-src i.ok{background:#3DD68C}.a1-src i.err{background:#FF6B6B}
 .a1-src small{font-size:12px;color:#8A94A3;text-align:end}
 .a1-q{padding:14px;border-radius:12px;background:#0E131B;border:1px solid #222A36;display:flex;flex-direction:column;gap:8px}.a1-q a{color:#8FB8FF}
+/* Job page (EN = U2 look, UR = U3 look; data always left-to-right) */
+.t-ur{display:none}html[lang="ur"] .t-ur{display:inline}html[lang="ur"] .t-en{display:none}
+.jp{min-height:100vh;background:#F4F8F6;color:#0F1F1A;font-family:"Plus Jakarta Sans",var(--body)}
+.jp h1,.jp h2{font-family:"Plus Jakarta Sans",var(--display);letter-spacing:-.01em}
+.jp-top{background:#0E6B4D;color:#fff}.jp-nav{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:16px;padding-bottom:16px}
+.jp-logo{color:#fff;font-weight:800;font-size:20px;text-decoration:none}.jp-back{color:#DDF1E8;text-decoration:none;font-weight:600}
+.jp-main{padding-top:28px;padding-bottom:60px;max-width:860px}
+.jp-card{background:#fff;border:1px solid #DDE7E2;border-radius:20px;padding:clamp(18px,4vw,32px);display:flex;flex-direction:column;gap:16px}
+.jp-badges{display:flex;flex-wrap:wrap;gap:8px}.jp-badges>*{padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;background:#F1F6F4}
+.jp-src{background:#E5F2EC!important;color:#0E6B4D}.jp-left.hot{background:#FCE8E6;color:#B42318}.jp-left.x{background:#EEE;color:#555}
+.jp h1{font-size:clamp(26px,5vw,38px);line-height:1.2;text-align:start}html[lang="ur"] .jp h1,html[lang="ur"] .jp-dept{text-align:right}
+.jp-dept{color:#56706A;font-size:17px}
+.jp-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:0}
+.jp-facts div{background:#F4F8F6;border-radius:14px;padding:12px 14px}.jp-facts dt{font-size:12px;color:#56706A;font-weight:600;text-transform:uppercase;letter-spacing:.06em}.jp-facts dd{margin:4px 0 0;font-weight:600;overflow-wrap:anywhere}
+.jp-ad{display:flex;flex-direction:column;gap:12px}.jp-ad h2{font-size:20px}.jp-ad img{width:100%;height:auto;border:1px solid #DDE7E2;border-radius:12px;display:block}
+.jp-btn{align-self:flex-start;display:inline-flex;align-items:center;min-height:48px;padding:0 22px;border-radius:12px;background:#0E6B4D;color:#fff;font-weight:700;text-decoration:none}
+.jp-note{color:#56706A;font-size:14px}
+html[lang="ur"] .jp{background:#FBF7EF;color:#1C1914;font-family:"Jameel Noori Nastaleeq","Plus Jakarta Sans","Noto Nastaliq Urdu",sans-serif}
+html[lang="ur"] .jp-top{background:#1E3A34}html[lang="ur"] .jp-card{border-color:#E8E1D4}html[lang="ur"] .jp-facts div{background:#FBF7EF}
+html[lang="ur"] .jp-facts dt{text-transform:none;letter-spacing:0;font-size:16px}html[lang="ur"] .jp-note{font-size:17px;line-height:2}html[lang="ur"] .jp-btn{background:#1E3A34;font-size:18px}
+html[lang="ur"] .jp h1,html[lang="ur"] .jp h2,html[lang="ur"] .jp-dept,html[lang="ur"] .jp-facts dd,html[lang="ur"] .jp-badges bdi{font-family:"Plus Jakarta Sans",sans-serif}
+html[lang="ur"] .jp-ad h2,html[lang="ur"] .jp-logo{font-family:"Jameel Noori Nastaleeq",serif}
