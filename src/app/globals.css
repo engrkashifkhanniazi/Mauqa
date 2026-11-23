@@ -349,3 +349,6 @@ html[lang="ur"] .ck{font-family:"Jameel Noori Nastaleeq","Noto Nastaliq Urdu",se
   .u2-hero{padding-top:10px}
 }
 @media (max-width:767px){.u2-nav,.u3-nav{position:relative}.u2-nav .u-lang,.u3-nav .u-lang{position:absolute;top:10px;inset-inline-end:16px;min-height:38px}}
+@media (max-width:767px){.u-sh-h,.u-sh-f{flex:none;position:relative;z-index:1}.u-sh-b{flex:1 1 auto;min-height:0}}
+@media (max-width:767px){.u-rail{overflow:clip}}
+.u2,.u3{overflow-x:clip}@media (max-width:767px){.u2-nav nav,.u3-nav nav{width:100%;max-width:100%;min-width:0}.u2-nav>*,.u3-nav>*{min-width:0}}
