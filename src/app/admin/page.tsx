@@ -62,6 +62,8 @@ export default async function Admin() {
         {queue.map((q) => <form key={String(q.id)} method="post" action="/api/admin/resolve" className="a1-q"><b>{String(q.title)}</b><span className="nt">{String(q.reason)} · <a href={String(q.official_url)} rel="noopener noreferrer" target="_blank">official source</a></span><input type="hidden" name="id" value={String(q.id)} />
           <div style={{ display: "flex", gap: 8 }}><button className="a1-btn" name="action" value="publish" type="submit">Publish</button><button className="a1-btn r" name="action" value="reject" type="submit">Reject</button></div></form>)}</section>
       <section className="a1-card" id="tools"><h2>Keep to Khyber Pakhtunkhwa and Islamabad</h2><p className="nt">Hides live listings that name another province. Nothing is deleted.</p>
-        <form method="post" action="/api/admin/scope-clean"><button className="a1-btn o" type="submit">Hide other-province listings</button></form></section>
+        <form method="post" action="/api/admin/scope-clean"><button className="a1-btn o" type="submit">Hide other-province listings</button></form>
+        <h2>Remove duplicate listings</h2><p className="nt">Same post, same source and last date listed twice: keeps one, hides the rest.</p>
+        <form method="post" action="/api/admin/dedupe"><button className="a1-btn o" type="submit">Hide duplicates</button></form></section>
     </main></div>);
 }
