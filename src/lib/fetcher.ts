@@ -30,19 +30,19 @@ export async function robotsAllows(url: string): Promise<boolean> {
   const rules = robotsCache.get(u.origin); // unreadable robots.txt => no rules to honour (documented assumption)
   return !rules || !rules.some((p) => u.pathname.startsWith(p));
 }
-export interface FetchResult { status: number; notModified: boolean; body?: Uint8Array; text?: string; etag?: string | null; hash?: string; contentType?: string | null }
-export async function politeFetch(url: string, opts: { etag?: string | null; binary?: boolean; referer?: string } = {}): Promise<FetchResult> {
+export interface FetchResult { status: number; notModified: boolean; body?: Uint8Array; text?: string; etag?: string | null; hash?: string; contentType?: string | null; setCookie?: string | null }
+export async function politeFetch(url: string, opts: { etag?: string | null; binary?: boolean; referer?: string; form?: Record<string, string>; cookie?: string } = {}): Promise<FetchResult> {
   if (!(await robotsAllows(url))) throw new Error(`robots.txt disallows ${url}`);
   const host = new URL(url).host; let delay = 2000;
   for (let attempt = 0; attempt < 3; attempt++) {
     await throttle(host);
     try {
-      const r = await fetch(url, { headers: { "user-agent": UA, ...(opts.referer ? { referer: opts.referer } : {}), ...(opts.etag ? { "if-none-match": opts.etag } : {}) }, signal: AbortSignal.timeout(30000), redirect: "follow" });
+      const r = await fetch(url, { method: opts.form ? "POST" : "GET", ...(opts.form ? { body: new URLSearchParams(opts.form) } : {}), headers: { "user-agent": UA, ...(opts.referer ? { referer: opts.referer } : {}), ...(opts.cookie ? { cookie: opts.cookie } : {}), ...(opts.etag ? { "if-none-match": opts.etag } : {}) }, signal: AbortSignal.timeout(30000), redirect: "follow" });
       if (r.status === 304) return { status: 304, notModified: true };
       if (r.status === 429 || r.status >= 500) { await sleep(delay); delay *= 2; continue; }
       if (r.status === 401 || r.status === 403) throw new Error(`access refused (${r.status}); not bypassing`);
       const buf = new Uint8Array(await r.arrayBuffer());
-      return { status: r.status, notModified: false, body: buf, text: opts.binary ? undefined : new TextDecoder().decode(buf), etag: r.headers.get("etag"), hash: sha256(buf), contentType: r.headers.get("content-type") };
+      return { status: r.status, notModified: false, body: buf, text: opts.binary ? undefined : new TextDecoder().decode(buf), etag: r.headers.get("etag"), hash: sha256(buf), contentType: r.headers.get("content-type"), setCookie: r.headers.get("set-cookie") };
     } catch (e) { if (attempt === 2) { const c = (e as { cause?: { code?: string; message?: string } }).cause; throw new Error(`${(e as Error).message}${c ? ` [cause: ${c.code ?? ''} ${c.message ?? ''}]` : ''}`); } await sleep(delay); delay *= 2; }
   }
   throw new Error(`gave up on ${url}`);

@@ -13,7 +13,7 @@ type R = Record<string, unknown>;
 const rows = (r: unknown) => ((r as { rows?: R[] }).rows ?? r) as R[];
 const MAX_PAGES = 40;
 
-interface Paper { key: "Daily Mashriq" | "Daily Jang" | "Nawa-i-Waqt" | "Daily Ausaf"; fromHtml?: (html: string) => string | null; listPages?: (t: Date) => Promise<string[]>; label: string; home: string; pageUrl: (t: Date, n: number) => string; imageUrl: (t: Date, n: number) => string }
+interface Paper { key: "Daily Mashriq" | "Daily Jang" | "Nawa-i-Waqt" | "Daily Ausaf" | "Daily Express" | "Daily Aaj"; fromHtml?: (html: string) => string | null; listPages?: (t: Date) => Promise<string[]>; label: string; home: string; pageUrl: (t: Date, n: number) => string; imageUrl: (t: Date, n: number) => string }
 const pad = (x: number) => String(x).padStart(2, "0");
 const DMY = (t: Date) => `${pad(t.getUTCDate())}-${pad(t.getUTCMonth() + 1)}-${t.getUTCFullYear()}`;
 const MDY = (t: Date) => `${pad(t.getUTCMonth() + 1)}-${pad(t.getUTCDate())}-${t.getUTCFullYear()}`;
@@ -27,11 +27,31 @@ const nawa = (city: string): Paper => ({ key: "Nawa-i-Waqt", label: `Nawa-i-Waqt
 const ausaf = (label: string, station: string): Paper => ({ key: "Daily Ausaf", label, home: "https://epaper.dailyausaf.com/", pageUrl: () => `https://epaper.dailyausaf.com/page${station}`, imageUrl: () => "",
   listPages: async (t) => { const h = await politeFetch(`https://epaper.dailyausaf.com/page${station}`); if (h.status !== 200) return [];
     return [...new Set([...(h.text ?? "").matchAll(/issues\/(\d{4}-\d{2}-\d{2})\/(\d+)-thumb\.jpg/g)].filter((m) => m[1] === YMD(t)).map((m) => `https://epaper.dailyausaf.com/issues/${m[1]}/${m[2]}-full.jpg`))]; } });
+// Express serves every page of an edition on one index page: thumbnails ("-thumb.jpg") whose full-size picture has the same name without "-thumb".
+const express = (issue: string, label: string): Paper => ({ key: "Daily Express", label, home: "https://www.express.com.pk/epaper/Index.aspx", imageUrl: () => "",
+  pageUrl: (t, n) => `https://www.express.com.pk/epaper/Index.aspx?Issue=${issue}&Page=FRONT_PAGE&Date=${YMD(t).replace(/-/g, "")}&Pageno=${n}&View=1`,
+  listPages: async (t) => { const d = YMD(t).replace(/-/g, ""); const h = await politeFetch(`https://www.express.com.pk/epaper/Index.aspx?Issue=${issue}&Page=FRONT_PAGE&Date=${d}&Pageno=1&View=1`); if (h.status !== 200) return [];
+    const found = [...(h.text ?? "").matchAll(new RegExp(`/images/${issue}/${d}/[A-Za-z0-9_-]+?(-thumb)?\\.jpg`, "g"))].map((m) => ({ u: m[0].replace("-thumb", ""), thumb: !!m[1] }));
+    const pageNo = (u: string) => Number(u.match(/_(\d+)\.jpg$/)?.[1] ?? 0);
+    return [...new Set(found.map((f) => f.u))].filter((u) => !/Front_Page_1\.jpg$/.test(u)).sort((a, b) => pageNo(a) - pageNo(b)).map((u) => "https://www.express.com.pk" + u); } });
+// Aaj: the home page lists the newest edition's page numbers; each page is a form post whose answer holds the page picture.
+const aaj = (edition: string, label: string): Paper => ({ key: "Daily Aaj", label, home: "https://epaper.dailyaaj.com.pk/", imageUrl: () => "", pageUrl: () => "https://epaper.dailyaaj.com.pk/",
+  listPages: async (t) => { const h = await politeFetch("https://epaper.dailyaaj.com.pk/"); if (h.status !== 200) return [];
+    const html = h.text ?? ""; if (html.match(/name="dated"[^>]*value="([^"]+)"/)?.[1] !== YMD(t)) return []; // newest edition on the site is not this day
+    const id = html.match(/name="epaper_id"[^>]*value="(\d+)"/)?.[1]; const cookie = (h.setCookie ?? "").split(/,(?=\s*\w+=)/).map((c) => c.split(";")[0].trim()).filter(Boolean).join("; ");
+    const pages = [...new Set([...html.matchAll(/<option[^>]*value="(\d+)"/g)].map((m) => m[1]))]; const out: string[] = [];
+    for (const pg of pages.slice(0, 40)) {
+      const r = await politeFetch("https://epaper.dailyaaj.com.pk/main/epaper", { form: { epaper_id: id ?? "", epaperpage: pg, epapertype: edition, date: `${pad(t.getUTCMonth() + 1)}-${pad(t.getUTCDate())}-${t.getUTCFullYear()}`, dated: YMD(t) }, cookie, referer: "https://epaper.dailyaaj.com.pk/" });
+      const u = (r.text ?? "").match(/https:\/\/epaper\.dailyaaj\.com\.pk\/\.?\/epaper\/[0-9a-f]{20,}\.jpg/)?.[0]; if (u) out.push(u.replace("/./", "/"));
+    }
+    return [...new Set(out)]; } });
 const listCache = new Map<string, string[]>();
 const PAPERS: Paper[] = [
   { key: "Daily Mashriq", label: "Mashriq Peshawar", home: "https://mashriqtv.pk/e-paper/", pageUrl: (t, n) => `https://mashriqtv.pk/e-paper/?pageno=${n}&date=${DMY(t)}`,
     imageUrl: (t, n) => `https://mashriqtv.pk/daily-mashriq/uploads/mashriqnp/${DMY(t)}/mas-${DMY(t)}-${n}.jpg` },
   nawa("islamabad"), ausaf("Ausaf Islamabad", ""),
+  express("NP_ISB", "Express Islamabad"),
+  aaj("peshawar", "Aaj Peshawar"),
   jang("pindi"), // one edition per paper where possible: federal ads repeat across editions and each page costs API money
 ];
 async function pageImage(p: Paper, t: Date, n: number) {
