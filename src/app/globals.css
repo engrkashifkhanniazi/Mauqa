@@ -205,7 +205,7 @@ html[lang="ur"] body{font-family:"Jameel Noori Nastaleeq","Plus Jakarta Sans","N
 .jp-src{background:#E5F2EC!important;color:#0E6B4D}.jp-left.hot{background:#FCE8E6;color:#B42318}.jp-left.x{background:#EEE;color:#555}
 .jp h1{font-size:clamp(26px,5vw,38px);line-height:1.2;text-align:start}html[lang="ur"] .jp h1,html[lang="ur"] .jp-dept{text-align:right}
 .jp-dept{color:#56706A;font-size:17px}
-.jp-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:0}
+.jp-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,44%),1fr));gap:10px;margin:0}
 .jp-facts div{background:#F4F8F6;border-radius:14px;padding:12px 14px}.jp-facts dt{font-size:12px;color:#56706A;font-weight:600;text-transform:uppercase;letter-spacing:.06em}.jp-facts dd{margin:4px 0 0;font-weight:600;overflow-wrap:anywhere}
 .jp-ad{display:flex;flex-direction:column;gap:12px}.jp-ad h2{font-size:20px}.jp-ad img{width:100%;height:auto;border:1px solid #DDE7E2;border-radius:12px;display:block}
 .jp-btn{align-self:flex-start;display:inline-flex;align-items:center;min-height:48px;padding:0 22px;border-radius:12px;background:#0E6B4D;color:#fff;font-weight:700;text-decoration:none}
@@ -215,3 +215,38 @@ html[lang="ur"] .jp-top{background:#1E3A34}html[lang="ur"] .jp-card{border-color
 html[lang="ur"] .jp-facts dt{text-transform:none;letter-spacing:0;font-size:16px}html[lang="ur"] .jp-note{font-size:17px;line-height:2}html[lang="ur"] .jp-btn{background:#1E3A34;font-size:18px}
 html[lang="ur"] .jp h1,html[lang="ur"] .jp h2,html[lang="ur"] .jp-dept,html[lang="ur"] .jp-facts dd,html[lang="ur"] .jp-badges bdi{font-family:"Plus Jakarta Sans",sans-serif}
 html[lang="ur"] .jp-ad h2,html[lang="ur"] .jp-logo{font-family:"Jameel Noori Nastaleeq",serif}
+/* ---- Mauqa additions: ads, sharing, save, install, follow, footer links, how-to, related, info pages ---- */
+.ad{display:flex;flex-direction:column;align-items:center;gap:4px;margin:6px 0;overflow:hidden}
+.ad-l{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#7A918A}
+.ad ins{width:100%}.ad-rect{min-height:300px}.ad-banner{min-height:120px}.ad-feed{min-height:140px}
+@media (min-width:900px){.ad-banner{min-height:110px}}
+.jp-acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-top:6px;border-top:1px solid #E6EEEA}
+.sh{display:flex;flex-wrap:wrap;gap:8px}
+.sh-wa{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:12px;background:#1FA855;color:#fff;font-weight:700;text-decoration:none}
+.sh-wa:hover{background:#178a45}
+.sh-b,.sv-j{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid #CFDDD7;background:#fff;color:#0F1F1A;font-weight:600;cursor:pointer}
+.sv-j[aria-pressed="true"]{background:#FFF6DB;border-color:#E9C25B;color:#7A5300}
+.inst{min-height:38px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:#2FC79A;color:#04251C;font-weight:700;cursor:pointer}
+.u2 .inst-n{border-color:#0E6B4D;background:#0E6B4D;color:#fff}.u3 .inst-n{background:#1E3A34;color:#fff;border-color:#1E3A34}
+.jp-nr{display:flex;align-items:center;gap:12px}
+.fol{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;padding:16px 20px;border-radius:16px;background:#E7F8EE;border:1px solid #BFE8CF;color:#0F5132;font-weight:700;text-decoration:none}
+.fol b{font-size:24px;line-height:1}.fol:hover{background:#DAF3E4}
+.nw{display:inline-block;margin-inline-end:6px;padding:1px 8px;border-radius:999px;background:#F2C14E;color:#1A1500;font-size:11px;font-weight:800;letter-spacing:.03em;vertical-align:1px}
+.fl{display:flex;flex-wrap:wrap;gap:6px 18px;margin-bottom:10px}.fl a{color:inherit;font-weight:600}.fl-c{margin-inline-start:auto;opacity:.8}
+.jp-main{display:flex;flex-direction:column;gap:16px}
+.jp-crumb{display:flex;gap:8px;align-items:center;font-size:14px;color:#56706A}.jp-crumb a{color:#0E6B4D;font-weight:600}
+.jp-how h2,.jp-rel h2{font-size:22px}.jp-how h3{font-size:17px;margin-top:6px}
+.jp-how ol,.jp-how ul{margin:0;padding-inline-start:22px;display:flex;flex-direction:column;gap:8px;line-height:1.6}
+.jp-mode{background:#F4F8F6;border-radius:12px;padding:10px 14px}
+.jp-rel ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.jp-rel li a{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border:1px solid #DDE7E2;border-radius:14px;text-decoration:none;color:inherit}
+.jp-rel li a:hover{border-color:#0E6B4D}.jp-rel li span{font-size:14px;color:#56706A}.jp-rel li em{font-style:normal;font-size:13px;font-weight:700;color:#0E6B4D}.jp-rel li em.hot{color:#B42318}
+.jp-more{align-self:flex-start;font-weight:700;color:#0E6B4D}
+.jp-disc{text-align:center}
+.doc h2{font-size:20px;margin-top:10px}.doc p,.doc li{line-height:1.7}.doc ul{margin:0;padding-inline-start:22px}.doc a{color:#0E6B4D}
+.doc-ur{font:500 19px/2.1 "Jameel Noori Nastaleeq","Noto Nastaliq Urdu",serif;background:#FBF7EF;border-radius:12px;padding:12px 16px}
+html[lang="ur"] .jp-how li,html[lang="ur"] .jp-mode{font-family:"Jameel Noori Nastaleeq","Noto Nastaliq Urdu",serif;font-size:18px;line-height:2.1}
+html[lang="ur"] .jp-how h2,html[lang="ur"] .jp-how h3,html[lang="ur"] .jp-rel h2,html[lang="ur"] .fol,html[lang="ur"] .sh,html[lang="ur"] .sv-j{font-family:"Jameel Noori Nastaleeq","Noto Nastaliq Urdu",serif}
+.u-ft{display:none;min-height:42px;padding:0 14px;border-radius:10px;border:1px solid #0E6B4D;background:#fff;color:#0E6B4D;font-weight:700;cursor:pointer}
+.u-ft[aria-expanded="true"]{background:#0E6B4D;color:#fff}
+@media (max-width:760px){.u-ft{display:inline-flex;align-items:center;margin-inline-start:auto}.u-rail:not(.open){display:none}}

@@ -10,6 +10,7 @@ const toView = (r: Row): JobView => ({
   province: String(r.province ?? ""), city: String(r.city ?? ""), bps: r.bps == null ? null : Number(r.bps), vacancies: r.vacancies == null ? null : Number(r.vacancies),
   lastDate: r.last_date ? String(r.last_date).slice(0, 10) : "", education: String(r.education ?? ""),
   age: r.age_min || r.age_max ? `${r.age_min ?? ""}${r.age_min && r.age_max ? " to " : ""}${r.age_max ?? ""} years` : "", verified: r.verified_at != null, officialUrl: String(r.official_url),
+  added: r.created_at ? new Date(String(r.created_at)).toISOString().slice(0, 10) : undefined,
 });
 
 export async function queryJobs(p: JobQuery): Promise<{ jobs: JobView[]; nextCursor: string | null }> {
@@ -45,6 +46,16 @@ export async function getJobBySlug(slug: string): Promise<(JobView & { files: { 
 }
 export async function allSlugs(): Promise<{ slug: string; updated: string }[]> {
   if (!hasDb()) return [];
-  const r = await db().execute(sql`select slug, updated_at from jobs where status in ('published','closed') order by updated_at desc limit 5000`);
+  const r = await db().execute(sql`select slug, updated_at from jobs where status = 'published' and (last_date is null or last_date >= current_date) order by updated_at desc limit 5000`);
   return ((r.rows ?? r) as Row[]).map((x) => ({ slug: String(x.slug), updated: new Date(String(x.updated_at)).toISOString() }));
+}
+
+/** Up to `limit` other open jobs, same department first, then same city, then same province. */
+export async function relatedJobs(j: JobView, limit = 6): Promise<JobView[]> {
+  if (!hasDb()) return SEED.filter((x) => x.id !== j.id && (x.department === j.department || x.city === j.city || x.province === j.province)).slice(0, limit);
+  const res = await db().execute(sql`select j.*, s.key as source_key from jobs j join sources s on s.id = j.source_id
+    where j.status = 'published' and (j.last_date is null or j.last_date >= current_date) and j.id <> ${j.id}
+      and (j.department = ${j.department} or j.city = ${j.city} or j.province = ${j.province})
+    order by (j.department = ${j.department}) desc, (j.city = ${j.city}) desc, j.created_at desc limit ${limit}`);
+  return ((res.rows ?? res) as Row[]).map(toView);
 }

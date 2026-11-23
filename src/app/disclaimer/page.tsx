@@ -1,0 +1,6 @@
+import Doc from "@/components/Doc";
+export const metadata = { title: "Disclaimer", description: "Mauqa is an independent job information website, not affiliated with any government department." };
+export default function Disclaimer() { return (<Doc title="Disclaimer" ur="موقع ایک آزاد معلوماتی ویب سائٹ ہے۔ ہمارا کسی سرکاری محکمے یا ٹیسٹنگ ادارے سے کوئی تعلق نہیں۔ ہم کوئی فیس نہیں لیتے اور نوکری دلوانے کا وعدہ نہیں کرتے۔ درخواست سے پہلے اصل اشتہار ضرور پڑھیں۔">
+  <p>Mauqa is an independent website. It is <b>not affiliated with, endorsed by or acting for</b> the Government of Pakistan, any provincial government, public service commission, testing service or newspaper.</p>
+  <ul><li>We do not recruit, shortlist or select candidates.</li><li>We never charge a fee and never promise a job. Anyone asking you for money in Mauqa&apos;s name is a fraud.</li><li>Listings may contain errors or become outdated. The official advertisement is always the final authority.</li><li>The &ldquo;How to apply&rdquo; and &ldquo;Documents&rdquo; sections are general guidance, not legal advice.</li></ul>
+  <p>Report a mistake or a suspicious advertisement through the <a href="/contact">Contact</a> page.</p></Doc>); }
