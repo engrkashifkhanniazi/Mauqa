@@ -1,11 +1,12 @@
 // Newspaper pipeline. Reads edition page images IN MEMORY, asks Claude for facts only, stores facts + a link to the publisher page.
-// It never stores or republishes page images or ad text. Needs ANTHROPIC_API_KEY (+ optional CLAUDE_MONTHLY_BUDGET_USD, default cap 8 USD).
+// It keeps no page images or ad text; it keeps only a cropped picture of each ad when the box is trustworthy, shown on the job page next to the link. Needs ANTHROPIC_API_KEY (+ optional CLAUDE_MONTHLY_BUDGET_USD, default cap 8 USD).
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { politeFetch, sha256 } from "@/lib/fetcher";
 import { evaluate } from "@/pipeline/rules";
 import { slugify } from "@/pipeline/normalise";
 import { BudgetStop, extractPageAds, pageHasJobAds } from "@/pipeline/paperAi";
+import { saveAdBuffer } from "@/lib/adImage";
 
 const DRY = process.argv.includes("--dry");
 type R = Record<string, unknown>;
@@ -70,6 +71,7 @@ async function main() {
             const ins = rows(await db().execute(sql`insert into jobs (slug, title, department, source_id, province, city, bps, vacancies, education, last_date, status, confidence, official_url, dedupe_key, content_hash, verified_at)
               values (${slug}, ${a.title}, ${a.department}, ${Number(sr.id)}, ${a.province}, ${a.city}, ${a.bps}, ${a.vacancies}, ${a.education}, ${a.last_date}, ${dec.action === "publish" ? "published" : "quarantined"}, ${a.confidence}, ${url}, ${slug + "|" + a.last_date}, ${sha256("paper|" + slug)}, null)
               on conflict (slug) do nothing returning id`))[0];
+            if (ins && a.crop) await saveAdBuffer(Number(ins.id), a.crop).catch(() => undefined); // picture is a bonus: never block the post
             if (ins) { if (dec.action === "publish") published++; else { queued++; await db().execute(sql`insert into review_queue (job_id, reason) values (${Number(ins.id)}, ${dec.reasons.join("; ")})`); } }
           }
           if (!DRY) await db().execute(sql`insert into raw_items (source_id, url, content_hash, kind) values (${Number(sr.id)}, ${url}, ${hash}, 'page') on conflict (content_hash) do nothing`);

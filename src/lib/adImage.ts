@@ -21,3 +21,8 @@ export async function hasAdImage(slug: string): Promise<boolean> {
   const r = await db().execute(sql`select 1 as x from job_images i join jobs j on j.id = i.job_id where j.slug = ${slug} limit 1`);
   return ((r as { rows?: unknown[] }).rows ?? (r as unknown as unknown[])).length > 0;
 }
+/** For pictures already cropped and shrunk by the newspaper worker. */
+export async function saveAdBuffer(jobId: number, buf: Buffer) {
+  await ensureAdImageTable();
+  await db().execute(sql`insert into job_images (job_id, mime, data) values (${jobId}, 'image/jpeg', ${buf}) on conflict (job_id) do nothing`);
+}
