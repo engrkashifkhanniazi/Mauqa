@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { sql } from "drizzle-orm";
 import { db, hasDb } from "@/db";
 import { isAdmin } from "@/lib/adminAuth";
+import AdImageInput from "@/components/AdImageInput";
 export const metadata = { title: "Admin", robots: { index: false } };
 export const dynamic = "force-dynamic";
 type R = Record<string, unknown>;
@@ -17,11 +18,12 @@ export default async function Admin() {
   return (<main className="wrap" style={{ padding: "28px 20px 60px" }}><h1>Admin</h1>
     <h2>Source health</h2><ul>{health.map((h) => <li key={String(h.key)}><b>{String(h.key)}</b>: {String(h.last_status ?? "never run")}, last items {String(h.last_seen ?? "-")}, checked {h.last_checked_at ? new Date(String(h.last_checked_at)).toISOString() : "never"}</li>)}</ul>
     <h2>AI spend this month</h2><p>${Number(spend[0]?.usd ?? 0).toFixed(4)} of ${process.env.CLAUDE_MONTHLY_BUDGET_USD ?? "unset"} cap, {String(spend[0]?.calls ?? 0)} calls</p>
-    <h2>Add a listing by hand</h2><p className="nt">For sources that refuse our server (ETEA returns 403). Copy the facts from the official advertisement; the same rules engine checks them. Manual entries are never shown as Verified.</p>
-    <form method="post" action="/api/admin/add" className="card" style={{ padding: 14, margin: "10px 0", display: "grid", gap: 10 }}>
+    <h2>Add a listing by hand</h2><p className="nt">For newspapers and sites no robot reads. Type the facts, attach the ad picture you saved, and publish. The same rules engine checks it. Manual entries are never shown as Verified.</p>
+    <form method="post" action="/api/admin/add" encType="multipart/form-data" className="card" style={{ padding: 14, margin: "10px 0", display: "grid", gap: 10 }}>
       {([["title", "Post title", "text", true], ["department", "Department", "text", false], ["bps", "BPS (1-22)", "number", false], ["vacancies", "Vacancies", "number", false], ["education", "Education / qualification", "text", false], ["city", "City", "text", false], ["lastDate", "Last date", "date", true], ["officialUrl", "Official advertisement URL", "url", true], ["applyUrl", "Apply URL (optional)", "url", false]] as const).map(([n, l, t, req]) =>
         <label key={n} htmlFor={"add-" + n}>{l}{req ? " *" : ""}<input id={"add-" + n} name={n} type={t} required={req} style={{ display: "block", width: "100%", minHeight: 44 }} /></label>)}
       <label htmlFor="add-source">Source<select id="add-source" name="source" defaultValue="ETEA" style={{ display: "block", width: "100%", minHeight: 44 }}><option>ETEA</option><option>FPSC</option><option>KPPSC</option><option>PPSC</option><option>SPSC</option><option>BPSC</option><option>NTS</option><option>OTS</option><option>PTS</option><option>ATS</option><option>NJP</option><option>Daily Aaj</option><option>Daily Jang</option><option>Nawa-i-Waqt</option><option>Daily Mashriq</option><option>Daily Ausaf</option><option>Daily Express</option></select></label>
+      <AdImageInput />
       <button className="rs" type="submit">Publish (unverified)</button></form>
     <h2>Paste many jobs at once</h2><p className="nt">Open the official page on your phone, select all, copy, and paste below. Each line that has a closing date becomes one job; you check the list before it goes live.</p>
     <form method="post" action="/api/admin/paste" className="card" style={{ padding: 14, margin: "10px 0", display: "grid", gap: 10 }}>

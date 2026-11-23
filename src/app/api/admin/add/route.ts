@@ -6,6 +6,7 @@ import { isAdmin } from "@/lib/adminAuth";
 import { evaluate } from "@/pipeline/rules";
 import { slugify } from "@/pipeline/normalise";
 import { sha256 } from "@/lib/fetcher";
+import { saveAdImage } from "@/lib/adImage";
 
 const blank = (v: unknown) => (v === "" ? undefined : v);
 const Body = z.object({
@@ -26,7 +27,8 @@ const rows = (r: unknown) => ((r as { rows?: R[] }).rows ?? r) as R[];
  *  the same deterministic rules engine gates publishing. Manual entries are NEVER "Verified". */
 export async function POST(req: NextRequest) {
   if (!isAdmin(req.cookies.get("rd_admin")?.value)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const p = Body.safeParse(Object.fromEntries((await req.formData()).entries()));
+  const form = await req.formData();
+  const p = Body.safeParse(Object.fromEntries(form.entries()));
   if (!p.success) return NextResponse.json({ error: "invalid input", issues: p.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`) }, { status: 400 });
   const b = p.data;
   const d = evaluate({ regionText: [b.department, b.city].filter(Boolean).join(" "), title: b.title, officialUrl: b.officialUrl, lastDate: b.lastDate, fieldsConfirmedAgainstSource: false });
@@ -36,5 +38,11 @@ export async function POST(req: NextRequest) {
   await db().execute(sql`insert into jobs (slug, title, department, source_id, city, education, bps, vacancies, last_date, status, official_url, apply_url, dedupe_key, content_hash)
     values (${slug}, ${b.title}, ${b.department ?? null}, ${Number(sr.id)}, ${b.city ?? null}, ${b.education ?? null}, ${b.bps ?? null}, ${b.vacancies ?? null}, ${b.lastDate}, 'published', ${b.officialUrl}, ${b.applyUrl ?? null}, ${slug + "|" + b.lastDate}, ${sha256("manual|" + slug)})
     on conflict (slug) do nothing`);
+  const pic = form.get("adImage");
+  if (pic instanceof File && pic.size > 0) {
+    if (!pic.type.startsWith("image/")) return NextResponse.json({ error: "adImage must be a picture" }, { status: 400 });
+    const jr = rows(await db().execute(sql`select id from jobs where slug = ${slug} limit 1`))[0];
+    if (jr) await saveAdImage(Number(jr.id), pic);
+  }
   return NextResponse.redirect(new URL("/admin?added=1", req.url), 303);
 }

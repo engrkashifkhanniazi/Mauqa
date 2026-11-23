@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import AdminLink from "@/components/AdminLink";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://rozgardesk.vercel.app"),
@@ -18,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;900&family=Noto+Nastaliq+Urdu:wght@500&display=swap" rel="stylesheet" />
         <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('rdt');if(t)document.documentElement.dataset.theme=t;var l=localStorage.getItem('rdl');if(l==='ur'){document.documentElement.lang='ur';document.documentElement.dir='rtl'}}catch(e){}` }} />
       </head>
-      <body>{children}</body>
+      <body>{children}<AdminLink /></body>
     </html>
   );
 }
