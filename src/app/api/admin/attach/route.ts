@@ -31,5 +31,6 @@ export async function POST(req: NextRequest) {
   const buf = await sharp(page).extract({ left, top, width: Math.min(width, W - left), height: Math.min(height, H - top) }).png().toBuffer().then(enhance);
   await ensureAdImageTable();
   await db().execute(sql`insert into job_images (job_id, mime, data) values (${Number(jr.id)}, 'image/jpeg', ${buf}) on conflict (job_id) do update set data = excluded.data, created_at = now()`);
+  await db().execute(sql`update job_images set enhanced = true where job_id = ${Number(jr.id)}`);
   return NextResponse.json({ ok: true, slug, size: buf.length }, { headers: h });
 }

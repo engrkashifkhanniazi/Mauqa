@@ -6,7 +6,7 @@ import { db } from "@/db";
 let ready: Promise<unknown> | null = null;
 export const ensureAdImageTable = () => (ready ??= db().execute(sql`create table if not exists job_images (
   job_id integer primary key references jobs(id) on delete cascade,
-  mime text not null, data bytea not null, created_at timestamptz not null default now())`));
+  mime text not null, data bytea not null, created_at timestamptz not null default now())`).then(() => db().execute(sql`alter table job_images add column if not exists enhanced boolean not null default false`)));
 
 /** Makes a newspaper ad crop easier to read: small crops are enlarged (lanczos), then contrast is stretched and the text sharpened. */
 export async function enhance(input: Buffer): Promise<Buffer> {
@@ -23,6 +23,7 @@ export async function saveAdImage(jobId: number, file: File) {
   await ensureAdImageTable();
   const buf = await shrink(file);
   await db().execute(sql`insert into job_images (job_id, mime, data) values (${jobId}, 'image/jpeg', ${buf}) on conflict (job_id) do update set data = excluded.data, created_at = now()`);
+  await db().execute(sql`update job_images set enhanced = true where job_id = ${jobId}`);
 }
 export async function hasAdImage(slug: string): Promise<boolean> {
   await ensureAdImageTable();
@@ -34,12 +35,13 @@ export async function saveAdBuffer(jobId: number, buf: Buffer) {
   await ensureAdImageTable();
   const better = await enhance(buf);
   await db().execute(sql`insert into job_images (job_id, mime, data) values (${jobId}, 'image/jpeg', ${better}) on conflict (job_id) do nothing`);
+  await db().execute(sql`update job_images set enhanced = true where job_id = ${jobId}`);
 }
 /** Re-runs enhance() on every stored ad picture (one-time clean-up for pictures saved before enhancing existed). */
 export async function enhanceAll(): Promise<number> {
   await ensureAdImageTable();
-  const r = await db().execute(sql`select job_id, encode(data, 'base64') as b64 from job_images`);
+  const r = await db().execute(sql`select job_id, encode(data, 'base64') as b64 from job_images where not enhanced`);
   const list = ((r as { rows?: unknown[] }).rows ?? (r as unknown as unknown[])) as { job_id: number; b64: string }[];
-  for (const x of list) { const buf = await enhance(Buffer.from(x.b64, "base64")); await db().execute(sql`update job_images set data = ${buf} where job_id = ${x.job_id}`); }
+  for (const x of list) { const buf = await enhance(Buffer.from(x.b64, "base64")); await db().execute(sql`update job_images set data = ${buf}, enhanced = true where job_id = ${x.job_id}`); }
   return list.length;
 }
