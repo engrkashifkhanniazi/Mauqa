@@ -250,3 +250,9 @@ html[lang="ur"] .jp-how h2,html[lang="ur"] .jp-how h3,html[lang="ur"] .jp-rel h2
 .u-ft{display:none;min-height:42px;padding:0 14px;border-radius:10px;border:1px solid #0E6B4D;background:#fff;color:#0E6B4D;font-weight:700;cursor:pointer}
 .u-ft[aria-expanded="true"]{background:#0E6B4D;color:#fff}
 @media (max-width:760px){.u-ft{display:inline-flex;align-items:center;margin-inline-start:auto}.u-rail:not(.open){display:none}}
+.ad{margin:24px 0}
+.jp-from{background:#FFF8E6;border:1px solid #F0DDA6;border-radius:14px;padding:12px 16px;display:flex;flex-direction:column;gap:4px}
+.jp-from p{white-space:pre-line;line-height:1.7}
+.jp-gen{background:#F4F8F6;border-radius:12px;padding:10px 14px;display:flex;flex-direction:column;gap:2px;line-height:1.6}
+.jp-short{display:grid;gap:8px;margin:0}.jp-short div{display:grid;gap:2px}.jp-short dt{font-weight:700}.jp-short dd{margin:0;line-height:1.6;color:#2C4A42}
+html[lang="ur"] .jp-from,html[lang="ur"] .jp-gen,html[lang="ur"] .jp-short{font-family:"Jameel Noori Nastaleeq","Noto Nastaliq Urdu",serif;font-size:18px;line-height:2.1}

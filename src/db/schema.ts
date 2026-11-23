@@ -41,6 +41,7 @@ export const jobs = pgTable("jobs", {
   confidence: numeric("confidence", { precision: 3, scale: 2 }),
   officialUrl: text("official_url").notNull(),
   applyUrl: text("apply_url"),
+  applyHow: text("apply_how"),
   dedupeKey: text("dedupe_key"),
   contentHash: text("content_hash").notNull(),
   verifiedAt: timestamp("verified_at", { withTimezone: true }),

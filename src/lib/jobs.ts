@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import type { JobView, SourceKey } from "./types";
 import { SEED } from "./seed";
 import { db, hasDb } from "@/db";
+import { ensureApplyHow } from "./applyHow";
 
 export interface JobQuery { q?: string; province?: string; bpsMin?: number; bpsMax?: number; source?: string[]; closingWithin?: number; sort?: "closing" | "vacancies"; cursor?: string; limit?: number; includeClosed?: boolean }
 type Row = Record<string, unknown>;
@@ -37,12 +38,13 @@ export async function queryJobs(p: JobQuery): Promise<{ jobs: JobView[]; nextCur
 }
 export const getJobs = async () => ({ jobs: (await queryJobs({ limit: 100 })).jobs, sample: !hasDb() });
 
-export async function getJobBySlug(slug: string): Promise<(JobView & { files: { label: string; url: string; kind: string }[]; status: string; postedDate?: string }) | null> {
+export async function getJobBySlug(slug: string): Promise<(JobView & { files: { label: string; url: string; kind: string }[]; status: string; postedDate?: string; applyHow?: string }) | null> {
   if (!hasDb()) { const j = SEED.find((x) => x.slug === slug); return j ? { ...j, files: [], status: "sample" } : null; }
+  await ensureApplyHow().catch(() => {});
   const res = await db().execute(sql`select j.*, s.key as source_key from jobs j join sources s on s.id = j.source_id where j.slug = ${slug} and j.status in ('published','closed') limit 1`);
   const row = ((res.rows ?? res) as Row[])[0]; if (!row) return null;
   const f = await db().execute(sql`select label, url, kind from job_files where job_id = ${Number(row.id)}`);
-  return { ...toView(row), files: (f.rows ?? f) as never, status: String(row.status), postedDate: row.posted_date ? String(row.posted_date).slice(0, 10) : undefined };
+  return { ...toView(row), files: (f.rows ?? f) as never, status: String(row.status), applyHow: row.apply_how ? String(row.apply_how) : undefined, postedDate: row.posted_date ? String(row.posted_date).slice(0, 10) : undefined };
 }
 export async function allSlugs(): Promise<{ slug: string; updated: string }[]> {
   if (!hasDb()) return [];

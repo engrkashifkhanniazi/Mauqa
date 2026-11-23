@@ -26,3 +26,13 @@ Write a parser in `src/parsers/`, register it in `workers/run.ts`, add a real ra
 
 ## Rules
 robots.txt respected, descriptive User-Agent, at most 1 request/s per host, no CAPTCHA, login or paywall bypass. Secrets live only in Vercel and GitHub.
+
+## Ads, analytics and site settings (Vercel env, then redeploy)
+- `NEXT_PUBLIC_ADSENSE_CLIENT` (ca-pub-…): turns on the AdSense script, the `google-adsense-account` meta tag and `/ads.txt`.
+- `NEXT_PUBLIC_AD_SLOT_LIST_FEED`, `NEXT_PUBLIC_AD_SLOT_JOB_MID`, `NEXT_PUBLIC_AD_SLOT_JOB_END`: ad unit ids. A slot with no id renders nothing.
+  Placement is policy-minded: in-feed after the 4th and 12th job card; on job pages after "How to apply" and at the end. Never next to buttons, filters or navigation, labelled "Advertisements", with reserved height so nothing jumps.
+- `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_WHATSAPP_CHANNEL`: Contact page email and the "Follow on WhatsApp" link (hidden when empty).
+- Vercel Web Analytics is wired in (`@vercel/analytics`); enable it in the project's Analytics tab.
+
+## How to apply text
+Admin "Add a job" has a short "How to apply, from the ad" box; paste lines accept it as an optional 8th part after the date. When filled, job pages show it as "From the advertisement"; otherwise a short, clearly labelled general guidance is shown.

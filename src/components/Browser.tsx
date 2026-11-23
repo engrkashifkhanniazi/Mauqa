@@ -54,7 +54,7 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobs, q, pv, bp, cl, src, onlySaved, onlyNew, saved, sort, now]);
   const count = (s: string) => jobs.filter((j) => j.source === s).length;
-  const feedAd = (i: number) => (i === 5 || i === 13 || i === 21) ? <AdSlot key={"ad" + i} slot={AD_SLOTS.listFeed} kind="feed" /> : null;
+  const feedAd = (i: number) => (i === 3 || i === 11) ? <AdSlot key={"ad" + i} slot={AD_SLOTS.listFeed} kind="feed" /> : null;
   const toList = () => document.getElementById("jobs")?.scrollIntoView({ behavior: "smooth" });
   const badge = (j: JobView) => j.verified ? t.ver : sample ? t.sample : t.unv;
   const Save = ({ j }: { j: JobView }) => <button className="u-sv" type="button" aria-pressed={saved.includes(j.id)} aria-label={`Save ${j.title}`} onClick={() => toggleSave(j.id)}><I d={P.bm} s={16} /></button>;
@@ -98,7 +98,6 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
           <div className="u-wrap u2-hero" id="top"><h1>{t.h1}</h1><p>{t.lede}</p>{search}</div></header>
         <main className="u-wrap u2-main" id="jobs">{filters}
           <section className="u2-list" aria-live="polite">{bar}
-            <AdSlot slot={AD_SLOTS.listTop} kind="banner" />
             {filtered.length ? filtered.map((j, i) => (<Fragment key={j.id}>
               <article className="u2-row">
                 <div className="u2-ic"><I d={P.brief} s={22} /></div>
@@ -117,7 +116,6 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
           <div className="u3-chips"><button type="button" aria-pressed={cl === 0 && !pv} onClick={() => { setCl(0); setPv(""); }}>{t.chips[0]}</button><button type="button" aria-pressed={cl === 10} onClick={() => setCl(10)}>{t.chips[1]}</button><button type="button" aria-pressed={pv === "kp"} onClick={() => setPv(pv === "kp" ? "" : "kp")}>{t.kp}</button><button type="button" aria-pressed={pv === "fed"} onClick={() => setPv(pv === "fed" ? "" : "fed")}>{t.fed}</button></div>
           <div className="u3-body">{filters}
             <section aria-live="polite">{bar}
-              <AdSlot slot={AD_SLOTS.listTop} kind="banner" />
               <div className="u3-grid">{filtered.length ? filtered.map((j, i) => (<Fragment key={j.id}>
                 <article className="u3-card">
                   <div className="u3-cap"><span dir="ltr">{isNew(j) && <b className="nw">{t.isNew}</b>}{j.source}</span><Save j={j} /></div>

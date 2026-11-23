@@ -7,6 +7,7 @@ import { evaluate } from "@/pipeline/rules";
 import { slugify } from "@/pipeline/normalise";
 import { sha256 } from "@/lib/fetcher";
 import { saveAdImage } from "@/lib/adImage";
+import { ensureApplyHow } from "@/lib/applyHow";
 
 const blank = (v: unknown) => (v === "" ? undefined : v);
 const Body = z.object({
@@ -20,6 +21,7 @@ const Body = z.object({
   lastDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   officialUrl: z.string().url(),
   applyUrl: z.preprocess(blank, z.string().url().optional()),
+  applyHow: z.preprocess(blank, z.string().trim().max(600).optional()),
 });
 type R = Record<string, unknown>;
 const rows = (r: unknown) => ((r as { rows?: R[] }).rows ?? r) as R[];
@@ -34,9 +36,10 @@ export async function POST(req: NextRequest) {
   const d = evaluate({ regionText: [b.department, b.city].filter(Boolean).join(" "), title: b.title, officialUrl: b.officialUrl, lastDate: b.lastDate, fieldsConfirmedAgainstSource: false });
   if (d.action !== "publish") return NextResponse.json({ error: "rules engine refused", reasons: d.reasons }, { status: 422 });
   const sr = rows(await db().execute(sql`insert into sources (key, name, base_url) values (${b.source}, ${b.source}, ${b.officialUrl}) on conflict (key) do update set key = excluded.key returning id`))[0];
+  await ensureApplyHow();
   const slug = slugify(b.title, b.lastDate + "-" + sha256(b.officialUrl + b.title).slice(0, 6));
-  await db().execute(sql`insert into jobs (slug, title, department, source_id, city, education, bps, vacancies, last_date, status, official_url, apply_url, dedupe_key, content_hash)
-    values (${slug}, ${b.title}, ${b.department ?? null}, ${Number(sr.id)}, ${b.city ?? null}, ${b.education ?? null}, ${b.bps ?? null}, ${b.vacancies ?? null}, ${b.lastDate}, 'published', ${b.officialUrl}, ${b.applyUrl ?? null}, ${slug + "|" + b.lastDate}, ${sha256("manual|" + slug)})
+  await db().execute(sql`insert into jobs (slug, title, department, source_id, city, education, bps, vacancies, last_date, status, official_url, apply_url, apply_how, dedupe_key, content_hash)
+    values (${slug}, ${b.title}, ${b.department ?? null}, ${Number(sr.id)}, ${b.city ?? null}, ${b.education ?? null}, ${b.bps ?? null}, ${b.vacancies ?? null}, ${b.lastDate}, 'published', ${b.officialUrl}, ${b.applyUrl ?? null}, ${b.applyHow ?? null}, ${slug + "|" + b.lastDate}, ${sha256("manual|" + slug)})
     on conflict (slug) do nothing`);
   const pic = form.get("adImage");
   if (pic instanceof File && pic.size > 0) {

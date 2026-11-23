@@ -5,11 +5,11 @@ export const NAME = "Mauqa";
 export const NAME_UR = "موقع";
 /** e.g. ca-pub-1234567890123456. Empty = no ads, no AdSense script, ad slots render nothing. */
 export const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT ?? "";
-/** Ad unit ids per position (from AdSense > Ads > By ad unit). Empty slot id = that position stays off. */
+/** Policy-minded placement: every slot sits after real content and away from buttons, filters and navigation.
+ *  listFeed: between job cards (after the 4th and 12th). jobMid: after "How to apply". jobEnd: after the disclaimer, before the footer.
+ *  Ad unit ids per position (from AdSense > Ads > By ad unit). Empty slot id = that position stays off. */
 export const AD_SLOTS = {
-  listTop: process.env.NEXT_PUBLIC_AD_SLOT_LIST_TOP ?? "",
   listFeed: process.env.NEXT_PUBLIC_AD_SLOT_LIST_FEED ?? "",
-  jobFacts: process.env.NEXT_PUBLIC_AD_SLOT_JOB_FACTS ?? "",
   jobMid: process.env.NEXT_PUBLIC_AD_SLOT_JOB_MID ?? "",
   jobEnd: process.env.NEXT_PUBLIC_AD_SLOT_JOB_END ?? "",
 };

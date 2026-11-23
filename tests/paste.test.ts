@@ -15,3 +15,12 @@ describe("structured lines", () => {
     expect(r[0]).toMatchObject({ title: "Staff Nurse", department: "Services Hospital", city: "Lahore", vacancies: 12, bps: 16, education: "BSc Nursing", lastDate: "2026-12-20" });
   });
 });
+
+describe("structured paste with how-to-apply", () => {
+  it("keeps the optional 8th field as applyHow and stays compatible without it", () => {
+    const [a, b] = parsePaste("Junior Clerk;;Health Department;;Peshawar;;5;;11;;Intermediate;;2026-12-10;;Apply online at etea.edu.pk, fee Rs 800\nNaib Qasid;;Health Department;;Swat;;3;;1;;Middle;;2026-12-12");
+    expect(a.applyHow).toBe("Apply online at etea.edu.pk, fee Rs 800");
+    expect(b.applyHow).toBeUndefined();
+    expect(b.lastDate).toBe("2026-12-12");
+  });
+});

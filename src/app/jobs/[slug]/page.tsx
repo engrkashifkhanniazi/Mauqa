@@ -41,7 +41,7 @@ export default async function JobPage({ params }: P) {
     [["Last date", "آخری تاریخ"], fd(j.lastDate)], [["Pay scale", "سکیل"], j.bps ? `BPS-${j.bps}` : ""], [["Vacancies", "اسامیاں"], j.vacancies ? String(j.vacancies) : ""],
     [["Education", "تعلیم"], j.education], [["Age", "عمر"], j.age], [["Location", "جگہ"], [j.city, j.province].filter(Boolean).join(", ")], [["Source", "ذریعہ"], j.source]];
   const description = `<p>${j.title}${j.department ? `, ${j.department}` : ""}${j.city ? `, ${j.city}` : ""}.</p><ul>${facts.filter(([, v]) => v).map(([[k], v]) => `<li>${k}: ${v}</li>`).join("")}</ul>`
-    + `<p>How to apply: ${h.mode.en}.</p><ol>${h.steps.map((s) => `<li>${s.en}</li>`).join("")}</ol><p>Confirm every detail in the official advertisement (${j.source}).</p>`;
+    + `<p>How to apply: ${(j.applyHow ?? h.mode.en).replace(/[<>&]/g, "")}</p><p>Documents: ${h.docs.en}</p><p>Confirm every detail in the official advertisement (${j.source}).</p>`;
   const ld = closed ? null : { "@context": "https://schema.org", "@type": "JobPosting", title: j.title, description,
     datePosted: j.postedDate || j.added, validThrough: j.lastDate ? `${j.lastDate}T23:59:59+05:00` : undefined, employmentType: "FULL_TIME",
     hiringOrganization: { "@type": "Organization", name: j.department || j.source },
@@ -63,8 +63,6 @@ export default async function JobPage({ params }: P) {
         <div className="jp-acts"><SaveJob id={j.id} /><ShareBar url={url} title={j.title} dept={j.department} last={fd(j.lastDate)} /></div>
       </article>
 
-      <AdSlot slot={AD_SLOTS.jobFacts} kind="rect" />
-
       <section className="jp-card">
         {pic ? (<div className="jp-ad"><h2><L en="Advertisement" ur="اشتہار" /></h2>
           <a href={`/api/ad/${j.slug}`} target="_blank" rel="noopener noreferrer"><img src={`/api/ad/${j.slug}`} alt={`Newspaper advertisement: ${j.title}${j.department ? ", " + j.department : ""}`} loading="lazy" /></a>
@@ -74,18 +72,16 @@ export default async function JobPage({ params }: P) {
         <p className="jp-note"><L en="Not yet verified against the official source. Confirm every detail in the original advertisement before applying." ur="یہ معلومات ابھی تصدیق شدہ نہیں۔ درخواست دینے سے پہلے اصل اشتہار ضرور دیکھیں۔" /></p>
       </section>
 
-      <AdSlot slot={AD_SLOTS.jobMid} kind="rect" />
-
       <section className="jp-card jp-how">
         <h2><L en="How to apply" ur="درخواست کیسے دیں" /></h2>
-        <p className="jp-mode"><b><L en="Mode: " ur="طریقہ: " /></b><L en={h.mode.en} ur={h.mode.ur} /></p>
-        <ol>{h.steps.map((s) => <li key={s.en}><L en={s.en} ur={s.ur} /></li>)}</ol>
-        <h3><L en="Documents usually needed" ur="عام طور پر درکار کاغذات" /></h3>
-        <ul className="jp-docs">{h.docs.map((s) => <li key={s.en}><L en={s.en} ur={s.ur} /></li>)}</ul>
-        <h3><L en="Before you apply" ur="درخواست سے پہلے" /></h3>
-        <ul>{h.tips.map((s) => <li key={s.en}><L en={s.en} ur={s.ur} /></li>)}</ul>
-        <p className="jp-note"><L en="This is general guidance. Where the official advertisement says something different, follow the advertisement." ur="یہ عمومی رہنمائی ہے۔ جہاں اصل اشتہار میں کچھ اور لکھا ہو، اشتہار کی بات مانیں۔" /></p>
+        {j.applyHow ? <div className="jp-from"><b><L en="From the advertisement" ur="اشتہار کے مطابق" /></b><p dir="auto">{j.applyHow}</p></div>
+          : <p className="jp-gen"><b><L en="General guidance" ur="عمومی رہنمائی" /></b><span><L en={h.mode.en} ur={h.mode.ur} /></span></p>}
+        <dl className="jp-short"><div><dt><L en="Documents" ur="کاغذات" /></dt><dd><L en={h.docs.en} ur={h.docs.ur} /></dd></div>
+          <div><dt><L en="Remember" ur="یاد رکھیں" /></dt><dd><L en={h.remember.en} ur={h.remember.ur} /></dd></div></dl>
+        <p className="jp-note"><L en="If the advertisement says anything different, follow the advertisement." ur="اشتہار میں کچھ اور لکھا ہو تو اشتہار کی بات مانیں۔" /></p>
       </section>
+
+      <AdSlot slot={AD_SLOTS.jobMid} kind="rect" />
 
       <Follow />
 
@@ -94,9 +90,8 @@ export default async function JobPage({ params }: P) {
           {l != null && <em className={l <= 7 ? "hot" : ""}><L en={`${l} days left`} ur={`${l} دن باقی`} /></em>}</a></li>); })}</ul>
         <a className="jp-more" href="/"><L en="See all jobs" ur="تمام نوکریاں دیکھیں" /></a></section>}
 
-      <AdSlot slot={AD_SLOTS.jobEnd} kind="rect" />
-
       <p className="jp-note jp-disc"><L en="Mauqa lists facts and links to official sources. It does not accept applications and is not affiliated with any department." ur="موقع صرف معلومات اور اصل ذریعے کا لنک دیتا ہے، درخواستیں قبول نہیں کرتا اور کسی محکمے سے وابستہ نہیں۔" /></p>
+      <AdSlot slot={AD_SLOTS.jobEnd} kind="rect" />
     </main>
     <footer className="u-foot"><div className="u-wrap"><FootLinks /></div></footer></div>);
 }

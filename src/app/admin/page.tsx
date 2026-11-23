@@ -47,12 +47,13 @@ export default async function Admin() {
             <label htmlFor="add-source">Source<select id="add-source" name="source" defaultValue="Daily Ausaf">{SOURCES.map((s) => <option key={s}>{s}</option>)}</select></label>
             <div className="a1-grid">{([["title", "Post title", "text", true], ["department", "Department", "text", false], ["city", "City", "text", false], ["bps", "BPS (1-22)", "number", false], ["vacancies", "Vacancies", "number", false], ["education", "Education", "text", false], ["lastDate", "Last date", "date", true], ["officialUrl", "Official ad link", "url", true], ["applyUrl", "Apply link (optional)", "url", false]] as const).map(([n, l, t, req]) =>
               <label key={n} htmlFor={"add-" + n}>{l}{req ? " *" : ""}<input id={"add-" + n} name={n} type={t} required={req} /></label>)}</div>
+            <label htmlFor="add-applyHow">How to apply, from the ad (short, optional)<textarea id="add-applyHow" name="applyHow" rows={2} maxLength={600} placeholder="e.g. Apply online at etea.edu.pk, fee Rs 800 / Plain-paper application to Director Health, Peshawar" /></label>
             <AdImageInput />
             <button className="a1-btn" type="submit">Publish</button></form></section>
         <aside className="a1-card" id="health"><h2>Sources</h2><div>{SOURCES.map((s) => { const h = hmap.get(s); const st = String(h?.last_status ?? "");
           return <div className="a1-src" key={s}><span><i className={st === "ok" ? "ok" : /err|fail|refus/i.test(st) ? "err" : ""} />{s}</span><small>{AUTO.has(s) ? "Automatic" : "Manual"}{h?.last_checked_at ? ` · ${new Date(String(h.last_checked_at)).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""}</small></div>; })}</div></aside>
       </div>
-      <section className="a1-card" id="paste"><h2>Paste many jobs at once</h2><p className="nt">One job per line: title;;department;;city;;vacancies;;bps;;education;;YYYY-MM-DD. You check the list before it goes live.</p>
+      <section className="a1-card" id="paste"><h2>Paste many jobs at once</h2><p className="nt">One job per line: title;;department;;city;;vacancies;;bps;;education;;YYYY-MM-DD;;how to apply (last part optional). You check the list before it goes live.</p>
         <form method="post" action="/api/admin/paste" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div className="a1-grid"><label htmlFor="p-source">Source<select id="p-source" name="source" defaultValue="ETEA">{SOURCES.map((s) => <option key={s}>{s}</option>)}</select></label>
             <label htmlFor="p-url">Official page link *<input id="p-url" name="officialUrl" type="url" required /></label></div>
