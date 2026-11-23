@@ -38,7 +38,7 @@ export default async function JobPage({ params }: P) {
         <dl className="jp-facts">{facts.filter(([, v]) => v).map(([[en, ur], v]) => <div key={en}><dt><L en={en} ur={ur} /></dt><dd><bdi dir="ltr">{v}</bdi></dd></div>)}</dl>
         {pic ? (<section className="jp-ad"><h2><L en="Advertisement" ur="اشتہار" /></h2>
           <a href={`/api/ad/${j.slug}`} target="_blank" rel="noopener noreferrer"><img src={`/api/ad/${j.slug}`} alt={`Advertisement: ${j.title}`} loading="lazy" /></a>
-          <a className="jp-btn" href={`/api/ad/${j.slug}`} target="_blank" rel="noopener noreferrer"><L en="Open ad picture" ur="اشتہار کی تصویر کھولیں" /></a></section>)
+          <a className="jp-btn" href={`/api/ad/${j.slug}`} target="_blank" rel="noopener noreferrer"><L en="Open advertisement" ur="اشتہار کھولیں" /></a></section>)
           : paper ? <p className="jp-note"><L en="The ad picture for this newspaper listing is not added yet." ur="اس اخباری اشتہار کی تصویر ابھی شامل نہیں کی گئی۔" /></p>
           : <a className="jp-btn" href={j.officialUrl} target="_blank" rel="noopener noreferrer"><L en="Open official advertisement" ur="اصل اشتہار کھولیں" /></a>}
         <p className="jp-note"><L en="Not yet verified against the official source. Confirm every detail in the original advertisement before applying." ur="یہ معلومات ابھی تصدیق شدہ نہیں۔ درخواست دینے سے پہلے اصل اشتہار ضرور دیکھیں۔" /></p>

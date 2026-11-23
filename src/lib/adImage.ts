@@ -8,9 +8,17 @@ export const ensureAdImageTable = () => (ready ??= db().execute(sql`create table
   job_id integer primary key references jobs(id) on delete cascade,
   mime text not null, data bytea not null, created_at timestamptz not null default now())`));
 
-export async function shrink(file: File): Promise<Buffer> {
-  return sharp(Buffer.from(await file.arrayBuffer()), { failOn: "none" }).rotate().resize({ width: 1600, withoutEnlargement: true }).jpeg({ quality: 80, mozjpeg: true }).toBuffer();
+/** Makes a newspaper ad crop easier to read: small crops are enlarged (lanczos), then contrast is stretched and the text sharpened. */
+export async function enhance(input: Buffer): Promise<Buffer> {
+  const m = await sharp(input, { failOn: "none" }).rotate().metadata();
+  const w = m.width ?? 0; const target = w < 1400 ? Math.min(1600, w * 2) : 1600;
+  return sharp(input, { failOn: "none" }).rotate()
+    .resize({ width: target, kernel: "lanczos3", withoutEnlargement: false })
+    .normalise({ lower: 1, upper: 99 })
+    .sharpen({ sigma: 1.1, m1: 0.6, m2: 2.2 })
+    .jpeg({ quality: 88, mozjpeg: true, chromaSubsampling: "4:4:4" }).toBuffer();
 }
+export async function shrink(file: File): Promise<Buffer> { return enhance(Buffer.from(await file.arrayBuffer())); }
 export async function saveAdImage(jobId: number, file: File) {
   await ensureAdImageTable();
   const buf = await shrink(file);
@@ -24,5 +32,14 @@ export async function hasAdImage(slug: string): Promise<boolean> {
 /** For pictures already cropped and shrunk by the newspaper worker. */
 export async function saveAdBuffer(jobId: number, buf: Buffer) {
   await ensureAdImageTable();
-  await db().execute(sql`insert into job_images (job_id, mime, data) values (${jobId}, 'image/jpeg', ${buf}) on conflict (job_id) do nothing`);
+  const better = await enhance(buf);
+  await db().execute(sql`insert into job_images (job_id, mime, data) values (${jobId}, 'image/jpeg', ${better}) on conflict (job_id) do nothing`);
+}
+/** Re-runs enhance() on every stored ad picture (one-time clean-up for pictures saved before enhancing existed). */
+export async function enhanceAll(): Promise<number> {
+  await ensureAdImageTable();
+  const r = await db().execute(sql`select job_id, encode(data, 'base64') as b64 from job_images`);
+  const list = ((r as { rows?: unknown[] }).rows ?? (r as unknown as unknown[])) as { job_id: number; b64: string }[];
+  for (const x of list) { const buf = await enhance(Buffer.from(x.b64, "base64")); await db().execute(sql`update job_images set data = ${buf} where job_id = ${x.job_id}`); }
+  return list.length;
 }

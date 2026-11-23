@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 import sharp from "sharp";
 import { db } from "@/db";
 import { isAdmin } from "@/lib/adminAuth";
-import { saveAdImage, ensureAdImageTable } from "@/lib/adImage";
+import { saveAdImage, ensureAdImageTable, enhance } from "@/lib/adImage";
 import { hostAllowed, ALLOWED_DOMAINS } from "@/pipeline/rules";
 import { uploadCodeOk } from "@/lib/uploadCode";
 /** e-paper sites may call this with an upload code (no cookie crosses sites) */
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   if (!r.ok) return NextResponse.json({ error: `fetch ${r.status}` }, { status: 502 });
   const page = Buffer.from(await r.arrayBuffer()); const m = await sharp(page).metadata(); const W = m.width ?? 0, H = m.height ?? 0;
   const left = Math.floor(box[0] * W), top = Math.floor(box[1] * H), width = Math.ceil((box[2] - box[0]) * W), height = Math.ceil((box[3] - box[1]) * H);
-  const buf = await sharp(page).extract({ left, top, width: Math.min(width, W - left), height: Math.min(height, H - top) }).resize({ width: 1600, withoutEnlargement: true }).jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+  const buf = await sharp(page).extract({ left, top, width: Math.min(width, W - left), height: Math.min(height, H - top) }).png().toBuffer().then(enhance);
   await ensureAdImageTable();
   await db().execute(sql`insert into job_images (job_id, mime, data) values (${Number(jr.id)}, 'image/jpeg', ${buf}) on conflict (job_id) do update set data = excluded.data, created_at = now()`);
   return NextResponse.json({ ok: true, slug, size: buf.length }, { headers: h });
