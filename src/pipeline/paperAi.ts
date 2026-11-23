@@ -39,7 +39,7 @@ const json = (t: string, open: string, close: string) => { const a = t.indexOf(o
 
 /** Cheap first pass on the whole page: does it carry government job advertisements at all? */
 export async function pageHasJobAds(page: Buffer): Promise<boolean> {
-  const small = await sharp(page).resize({ width: 1400, withoutEnlargement: true }).jpeg({ quality: 70 }).toBuffer();
+  const small = await sharp(page, { failOn: "none" }).resize({ width: 1400, withoutEnlargement: true }).jpeg({ quality: 70 }).toBuffer();
   const t = await ask(small, 'Is this newspaper page carrying any government or public-sector job / recruitment advertisements (posts, BPS, last date to apply)? Answer ONLY JSON: {"has_job_ads": true|false}', 30);
   try { return json(t, "{", "}")?.has_job_ads === true; } catch { return false; }
 }
@@ -51,11 +51,11 @@ Write facts in your own short words. Use null for anything not printed. Never gu
 
 /** 2x2 overlapping tiles keep fine print readable. Facts are extracted; a cropped picture of each ad is kept only when its box is trustworthy. */
 export async function extractPageAds(page: Buffer): Promise<PaperAdWithCrop[]> {
-  const meta = await sharp(page).metadata(); const W = meta.width ?? 0, H = meta.height ?? 0;
+  const meta = await sharp(page, { failOn: "none" }).metadata(); const W = meta.width ?? 0, H = meta.height ?? 0;
   if (!W || !H) return [];
   const tw = Math.round(W * 0.56), th = Math.round(H * 0.56); const out: PaperAdWithCrop[] = [];
   for (const [x, y] of [[0, 0], [W - tw, 0], [0, H - th], [W - tw, H - th]]) {
-    const tile = await sharp(page).extract({ left: x, top: y, width: tw, height: th }).resize({ width: 1800, withoutEnlargement: true }).jpeg({ quality: 82 }).toBuffer();
+    const tile = await sharp(page, { failOn: "none" }).extract({ left: x, top: y, width: tw, height: th }).resize({ width: 1800, withoutEnlargement: true }).jpeg({ quality: 82 }).toBuffer();
     try {
       const arr = json(await ask(tile, PROMPT, 1500), "[", "]");
       if (Array.isArray(arr)) for (const a of arr) { const p = PaperAd.safeParse(a); if (p.success && p.data.is_government_recruitment) out.push({ ...p.data, crop: p.data.confidence >= 0.7 ? await cropAd(page, { x, y, w: tw, h: th }, p.data.box).catch(() => undefined) : undefined }); }
