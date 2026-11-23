@@ -3,5 +3,6 @@ import { ADSENSE_CLIENT } from "@/lib/site";
 export const dynamic = "force-static";
 export function GET() {
   const pub = ADSENSE_CLIENT.replace(/^ca-/, "");
-  return new Response(pub ? `google.com, ${pub}, DIRECT, f08c47fec0942fa0\n` : "# AdSense not set up yet\n", { headers: { "content-type": "text/plain; charset=utf-8" } });
+  if (!pub) return new Response("Not found", { status: 404, headers: { "content-type": "text/plain; charset=utf-8" } });
+  return new Response(`google.com, ${pub}, DIRECT, f08c47fec0942fa0\n`, { headers: { "content-type": "text/plain; charset=utf-8" } });
 }

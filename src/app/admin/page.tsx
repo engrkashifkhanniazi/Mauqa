@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { ensureContact } from "@/lib/contact";
 import { sql } from "drizzle-orm";
 import { db, hasDb } from "@/db";
 import { isAdmin } from "@/lib/adminAuth";
@@ -11,7 +12,7 @@ const SOURCES = ["Daily Ausaf", "Nawa-i-Waqt", "Daily Express", "Daily Aaj", "Da
 /** Sources the GitHub robots read by themselves; the rest are added from this page. */
 const AUTO = new Set(["FPSC", "KPPSC", "NTS", "ATS", "Daily Mashriq", "Daily Jang", "Daily Express", "Daily Aaj"]);
 const I = ({ d }: { d: string }) => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
-const NAV: [string, string, string][] = [["#top", "Overview", "M3 11l9-7 9 7v9H3z"], ["#add", "Add job", "M12 5v14M5 12h14"], ["#paste", "Paste many", "M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"], ["#review", "Review queue", "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"], ["#health", "Sources", "M3 12h4l3-7 4 14 3-7h4"], ["#closed", "Closed jobs", "M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18zM12 7v5l3 2"], ["#tools", "Tools", "M14 7l3 3-8 8H6v-3z"]];
+const NAV: [string, string, string][] = [["#top", "Overview", "M3 11l9-7 9 7v9H3z"], ["#add", "Add job", "M12 5v14M5 12h14"], ["#paste", "Paste many", "M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"], ["#review", "Review queue", "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"], ["#health", "Sources", "M3 12h4l3-7 4 14 3-7h4"], ["#messages", "Messages", "M4 4h16v12H5l-1 4z"], ["#closed", "Closed jobs", "M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18zM12 7v5l3 2"], ["#tools", "Tools", "M14 7l3 3-8 8H6v-3z"]];
 
 export default async function Admin() {
   if (!isAdmin((await cookies()).get("rd_admin")?.value)) return (
@@ -20,14 +21,16 @@ export default async function Admin() {
       <label htmlFor="pw">Password<input id="pw" name="password" type="password" required autoComplete="current-password" /></label>
       <button className="a1-btn" type="submit">Sign in</button></form></main>);
   if (!hasDb()) return <main className="a1" dir="ltr" lang="en"><div className="a1-main"><h1>Admin</h1><p>DATABASE_URL is not set.</p></div></main>;
-  const [health, queue, spend, kpi, closed] = await Promise.all([
+  await ensureContact().catch(() => {});
+  const [health, queue, spend, kpi, closed, msgs] = await Promise.all([
     rows(sql`select s.key, s.last_status, s.last_checked_at, (select items_seen from ingest_runs r where r.source_id = s.id order by r.id desc limit 1) as last_seen from sources s order by s.key`),
     rows(sql`select q.id, q.reason, j.title, j.official_url from review_queue q join jobs j on j.id = q.job_id where q.resolved_at is null order by q.id limit 100`),
     rows(sql`select coalesce(sum(cost_usd),0)::float as usd, count(*)::int as calls from ai_calls where created_at >= date_trunc('month', now())`),
     rows(sql`select (select count(*)::int from jobs where status='published' and (last_date is null or last_date >= current_date)) as live,
       (select count(*)::int from jobs where created_at >= current_date) as today,
       (select count(*)::int from jobs where status='published' and last_date between current_date and current_date + 3) as closing`),
-    rows(sql`select j.id, j.title, j.department, j.slug, j.last_date, s.key from jobs j join sources s on s.id = j.source_id where j.status = 'closed' and j.last_date >= current_date - 90 order by j.last_date desc limit 60`)]);
+    rows(sql`select j.id, j.title, j.department, j.slug, j.last_date, s.key from jobs j join sources s on s.id = j.source_id where j.status = 'closed' and j.last_date >= current_date - 90 order by j.last_date desc limit 60`),
+    rows(sql`select id, name, email, topic, page_url, message, created_at from contact_messages order by id desc limit 30`).catch(() => [])]);
   const cap = Number(process.env.CLAUDE_MONTHLY_BUDGET_USD || 8); const usd = Number(spend[0]?.usd ?? 0);
   const k = kpi[0] ?? {};
   const hmap = new Map(health.map((h) => [String(h.key), h]));
@@ -69,6 +72,9 @@ export default async function Admin() {
         <form method="post" action="/api/admin/dedupe"><button className="a1-btn o" type="submit">Hide duplicates</button></form>
         <h2>Make ad pictures clearer</h2><p className="nt">Enlarges and sharpens every saved ad picture once. New pictures are made clearer automatically.</p>
         <form method="post" action="/api/admin/enhance"><button className="a1-btn o" type="submit">Make pictures clearer</button></form></section>
+      <section className="a1-card" id="messages"><h2>Messages from the Contact page ({msgs.length})</h2>{msgs.length === 0 && <p className="nt">No messages yet.</p>}
+        {msgs.map((m) => <div key={String(m.id)} className="a1-q"><b>{String(m.topic)} · <a href={`mailto:${String(m.email)}`}>{String(m.email)}</a>{m.name ? ` (${String(m.name)})` : ""}</b>
+          <span className="nt">{new Date(String(m.created_at)).toLocaleString("en-GB", { timeZone: "Asia/Karachi" })}{m.page_url ? <> · <a href={String(m.page_url)} target="_blank" rel="noopener noreferrer">page</a></> : null}</span><p style={{ whiteSpace: "pre-line", margin: 0 }}>{String(m.message)}</p></div>)}</section>
       <section className="a1-card" id="closed"><h2>Closed jobs, last 90 days ({closed.length})</h2>
         <p className="nt">Closed jobs are never deleted. Their pages say &quot;Closed&quot;, show no ads and are hidden from Google; after 90 days the page is removed (data stays). If a department extends the deadline, set the new last date and reopen.</p>
         {closed.length === 0 && <p className="nt">No closed jobs.</p>}

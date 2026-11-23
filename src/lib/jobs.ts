@@ -3,23 +3,24 @@ import type { JobView, SourceKey } from "./types";
 import { SEED } from "./seed";
 import { db, hasDb } from "@/db";
 import { ensureApplyHow } from "./applyHow";
+import { normJob } from "./normalize";
 
 export interface JobQuery { q?: string; province?: string; bpsMin?: number; bpsMax?: number; source?: string[]; closingWithin?: number; sort?: "closing" | "vacancies"; cursor?: string; limit?: number; includeClosed?: boolean }
 type Row = Record<string, unknown>;
-const toView = (r: Row): JobView => ({
+const toView = (r: Row): JobView => normJob({
   id: Number(r.id), slug: String(r.slug), title: String(r.title), department: String(r.department ?? ""), source: String(r.source_key) as SourceKey,
   province: String(r.province ?? ""), city: String(r.city ?? ""), bps: r.bps == null ? null : Number(r.bps), vacancies: r.vacancies == null ? null : Number(r.vacancies),
   lastDate: r.last_date ? String(r.last_date).slice(0, 10) : "", education: String(r.education ?? ""),
   age: r.age_min || r.age_max ? `${r.age_min ?? ""}${r.age_min && r.age_max ? " to " : ""}${r.age_max ?? ""} years` : "", verified: r.verified_at != null, officialUrl: String(r.official_url),
   added: r.created_at ? new Date(String(r.created_at)).toISOString().slice(0, 10) : undefined,
-});
+} as JobView);
 
 export async function queryJobs(p: JobQuery): Promise<{ jobs: JobView[]; nextCursor: string | null }> {
   const limit = Math.min(p.limit ?? 50, 100);
   if (!hasDb()) { // sample mode
     let j = SEED.filter((x) => !p.q || (x.title + x.department + x.city).toLowerCase().includes(p.q.toLowerCase()));
     if (p.province) j = j.filter((x) => x.province === p.province);
-    return { jobs: j.slice(0, limit), nextCursor: null };
+    return { jobs: j.slice(0, limit).map(normJob), nextCursor: null };
   }
   const w = [p.includeClosed ? sql`j.status in ('published','closed')` : sql`j.status = 'published' and (j.last_date is null or j.last_date >= current_date)`];
   if (p.q) w.push(sql`(j.search_tsv @@ plainto_tsquery('simple', ${p.q}) or j.title % ${p.q} or j.title ilike ${"%" + p.q + "%"} or j.department ilike ${"%" + p.q + "%"})`);
@@ -39,7 +40,7 @@ export async function queryJobs(p: JobQuery): Promise<{ jobs: JobView[]; nextCur
 export const getJobs = async () => ({ jobs: (await queryJobs({ limit: 100 })).jobs, sample: !hasDb() });
 
 export async function getJobBySlug(slug: string): Promise<(JobView & { files: { label: string; url: string; kind: string }[]; status: string; postedDate?: string; applyHow?: string }) | null> {
-  if (!hasDb()) { const j = SEED.find((x) => x.slug === slug); return j ? { ...j, files: [], status: "sample" } : null; }
+  if (!hasDb()) { const j = SEED.find((x) => x.slug === slug); return j ? { ...normJob(j), files: [], status: "sample" } : null; }
   await ensureApplyHow().catch(() => {});
   const res = await db().execute(sql`select j.*, s.key as source_key from jobs j join sources s on s.id = j.source_id where j.slug = ${slug} and j.status in ('published','closed') limit 1`);
   const row = ((res.rows ?? res) as Row[])[0]; if (!row) return null;
@@ -54,7 +55,7 @@ export async function allSlugs(): Promise<{ slug: string; updated: string }[]> {
 
 /** Up to `limit` other open jobs, same department first, then same city, then same province. */
 export async function relatedJobs(j: JobView, limit = 6): Promise<JobView[]> {
-  if (!hasDb()) return SEED.filter((x) => x.id !== j.id && (x.department === j.department || x.city === j.city || x.province === j.province)).slice(0, limit);
+  if (!hasDb()) return SEED.map(normJob).filter((x) => x.id !== j.id && (x.department === j.department || x.city === j.city || x.province === j.province)).slice(0, limit);
   const res = await db().execute(sql`select j.*, s.key as source_key from jobs j join sources s on s.id = j.source_id
     where j.status = 'published' and (j.last_date is null or j.last_date >= current_date) and j.id <> ${j.id}
       and (j.department = ${j.department} or j.city = ${j.city} or j.province = ${j.province})

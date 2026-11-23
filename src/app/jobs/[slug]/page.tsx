@@ -5,7 +5,9 @@ import { hasAdImage } from "@/lib/adImage";
 import { isGov } from "@/lib/types";
 import { hasDb } from "@/db";
 import { SITE, AD_SLOTS } from "@/lib/site";
-import { howTo } from "@/lib/howto";
+import { howTo, steps, CHECKLIST } from "@/lib/howto";
+import { KIND_LABEL, sourceKind, KP, FED } from "@/lib/normalize";
+import { payRange, PAY_SOURCE } from "@/lib/pay";
 import ShareBar from "@/components/ShareBar";
 import SaveJob from "@/components/SaveJob";
 import AdSlot from "@/components/AdSlot";
@@ -38,6 +40,9 @@ export default async function JobPage({ params }: P) {
   // Long-closed jobs: the page goes away (404) after 90 days; the data stays in the database.
   if (closed && left != null && left < -90) notFound();
   const h = howTo(j.source);
+  const kind = sourceKind(j.source);
+  const pay = payRange(j.bps);
+  const st = steps(j.source);
   const url = `${SITE}/jobs/${j.slug}`;
   const facts: [[string, string], string][] = [
     [["Last date", "آخری تاریخ"], fd(j.lastDate)], [["Pay scale", "سکیل"], j.bps ? `BPS-${j.bps}` : ""], [["Vacancies", "اسامیاں"], j.vacancies ? String(j.vacancies) : ""],
@@ -57,7 +62,7 @@ export default async function JobPage({ params }: P) {
     <main className="u-wrap jp-main">
       <nav className="jp-crumb" aria-label="Breadcrumb"><a href="/"><L en="Jobs" ur="نوکریاں" /></a><span aria-hidden="true">/</span><bdi dir="ltr">{j.source}</bdi></nav>
       <article className="jp-card">
-        <div className="jp-badges"><bdi dir="ltr" className="jp-src">{j.source}</bdi><span className="jp-unv">{j.verified ? <L en="Verified" ur="تصدیق شدہ" /> : <L en="Unverified" ur="غیر تصدیق شدہ" />}</span>
+        <div className="jp-badges"><bdi dir="ltr" className="jp-src">{j.source}</bdi><span className="jp-unv">{j.verified ? <L en="Verified" ur="تصدیق شدہ" /> : <L en={KIND_LABEL[kind].en} ur={KIND_LABEL[kind].ur} />}</span>
           {left != null && <span className={"jp-left" + (closed ? " x" : left <= 7 ? " hot" : "")}>{closed ? <L en="Closed" ur="بند ہو چکی" /> : <><L en="Days left: " ur="باقی دن: " /><bdi dir="ltr">{left}</bdi></>}</span>}</div>
         {closed && <p className="jp-closed"><L en="This job is closed: the last date has passed. See similar open jobs below." ur="یہ نوکری بند ہو چکی ہے، آخری تاریخ گزر گئی۔ نیچے ملتی جلتی کھلی نوکریاں دیکھیں۔" /></p>}
         <h1 dir="ltr">{j.title}</h1>
@@ -72,16 +77,43 @@ export default async function JobPage({ params }: P) {
           <a className="jp-btn" href={`/api/ad/${j.slug}`} target="_blank" rel="noopener noreferrer"><L en="Open advertisement" ur="اشتہار کھولیں" /></a></div>)
           : paper ? <p className="jp-note"><L en="The ad picture for this newspaper listing is not added yet." ur="اس اخباری اشتہار کی تصویر ابھی شامل نہیں کی گئی۔" /></p>
           : <a className="jp-btn" href={j.officialUrl} target="_blank" rel="noopener noreferrer"><L en="Open official advertisement" ur="اصل اشتہار کھولیں" /></a>}
-        <p className="jp-note"><L en="Not yet verified against the official source. Confirm every detail in the original advertisement before applying." ur="یہ معلومات ابھی تصدیق شدہ نہیں۔ درخواست دینے سے پہلے اصل اشتہار ضرور دیکھیں۔" /></p>
+        <p className="jp-note">{kind === "paper"
+          ? <L en={`Newspaper advertisement published in ${j.source}. Confirm the details on the official e-paper or the advertisement picture before applying.`} ur={`یہ اشتہار ${j.source} میں شائع ہوا۔ درخواست سے پہلے اصل ای پیپر یا اشتہار کی تصویر سے تفصیل ضرور ملا لیں۔`} />
+          : <L en={`Listed from the official ${j.source} website. Confirm every detail there before applying.`} ur={`یہ نوکری ${j.source} کی سرکاری ویب سائٹ سے لی گئی ہے۔ درخواست سے پہلے وہاں تفصیل ضرور دیکھیں۔`} />}</p>
+      </section>
+
+      <section className="jp-card jp-how">
+        <h2><L en="Who can apply" ur="کون درخواست دے سکتا ہے" /></h2>
+        <ul>
+          {j.education && <li><L en={`Qualification: ${j.education}.`} ur={`تعلیم: ${j.education}۔`} /></li>}
+          <li>{j.age ? <L en={`Age: ${j.age}, counted on the closing date. Government rules usually allow some upper-age relaxation (for example for government employees or certain categories); the advertisement states how much.`} ur={`عمر: ${j.age}، آخری تاریخ کے حساب سے۔ سرکاری قواعد میں عموماً بالائی عمر میں کچھ رعایت ہوتی ہے (مثلاً سرکاری ملازمین یا بعض کیٹیگریز کے لیے)؛ تفصیل اشتہار میں ہوتی ہے۔`} />
+            : <L en="Age limit: as stated in the advertisement, counted on the closing date. Government rules usually allow some upper-age relaxation." ur="عمر کی حد: جیسا اشتہار میں لکھا ہے، آخری تاریخ کے حساب سے۔ سرکاری قواعد میں عموماً بالائی عمر میں کچھ رعایت ہوتی ہے۔" />}</li>
+          <li>{j.province === KP ? <L en="Domicile: Khyber Pakhtunkhwa posts are usually for KP domicile holders, and district posts are often limited to the district named in the advertisement." ur="ڈومیسائل: خیبر پختونخوا کی آسامیاں عموماً کے پی ڈومیسائل والوں کے لیے ہوتی ہیں، اور ضلعی آسامیاں اکثر اشتہار میں دیے گئے ضلع تک محدود ہوتی ہیں۔" />
+            : j.province === FED ? <L en="Domicile: federal posts are filled on the regional quota (merit plus provincial shares). The advertisement lists which domiciles can apply for each post." ur="ڈومیسائل: وفاقی آسامیاں علاقائی کوٹے (میرٹ اور صوبائی حصوں) پر پُر کی جاتی ہیں۔ اشتہار میں ہر آسامی کے لیے اہل ڈومیسائل درج ہوتے ہیں۔" />
+            : <L en="Domicile: check the advertisement for any domicile or district condition." ur="ڈومیسائل: اشتہار میں ڈومیسائل یا ضلع کی شرط ضرور دیکھیں۔" />}</li>
+        </ul>
+        {pay && <><h3><L en="Pay" ur="تنخواہ" /></h3>
+          <p className="jp-pay"><b dir="ltr">BPS-{j.bps}: {pay}</b> <span><L en="monthly basic pay (federal Basic Pay Scales 2026)." ur="ماہانہ بنیادی تنخواہ (وفاقی بنیادی پے اسکیل 2026)۔" /></span></p>
+          <p className="jp-note"><L en="Allowances such as house rent, conveyance, medical and the 7% ad-hoc relief are paid on top and vary by post and city. Provincial and autonomous bodies may use their own scales; the advertisement and appointment letter are final." ur="مکان کا کرایہ، کنوینس، میڈیکل اور 7 فیصد ایڈہاک ریلیف جیسے الاؤنسز اس کے علاوہ ہیں اور آسامی و شہر کے حساب سے مختلف ہوتے ہیں۔ صوبائی اور خودمختار ادارے اپنے سکیل بھی رکھ سکتے ہیں؛ حتمی بات اشتہار اور تقرری نامے کی ہے۔" /> <a href={PAY_SOURCE} target="_blank" rel="noopener noreferrer"><L en="Source: Finance Division" ur="ذریعہ: فنانس ڈویژن" /></a></p></>}
       </section>
 
       <section className="jp-card jp-how">
         <h2><L en="How to apply" ur="درخواست کیسے دیں" /></h2>
         {j.applyHow ? <div className="jp-from"><b><L en="From the advertisement" ur="اشتہار کے مطابق" /></b><p dir="auto">{j.applyHow}</p></div>
           : <p className="jp-gen"><b><L en="General guidance" ur="عمومی رہنمائی" /></b><span><L en={h.mode.en} ur={h.mode.ur} /></span></p>}
-        <dl className="jp-short"><div><dt><L en="Documents" ur="کاغذات" /></dt><dd><L en={h.docs.en} ur={h.docs.ur} /></dd></div>
-          <div><dt><L en="Remember" ur="یاد رکھیں" /></dt><dd><L en={h.remember.en} ur={h.remember.ur} /></dd></div></dl>
+        <dl className="jp-short"><div><dt><L en="Remember" ur="یاد رکھیں" /></dt><dd><L en={h.remember.en} ur={h.remember.ur} /></dd></div></dl>
+        <details className="jp-steps"><summary><L en="Step-by-step guide" ur="مرحلہ وار طریقہ" /></summary><ol>{st.map((x) => <li key={x.en}><L en={x.en} ur={x.ur} /></li>)}</ol></details>
+        <h3><L en="Document checklist" ur="کاغذات کی فہرست" /></h3>
+        <ul className="jp-check">{CHECKLIST.map((x) => <li key={x.en}><L en={x.en} ur={x.ur} /></li>)}</ul>
         <p className="jp-note"><L en="If the advertisement says anything different, follow the advertisement." ur="اشتہار میں کچھ اور لکھا ہو تو اشتہار کی بات مانیں۔" /></p>
+      </section>
+
+      <section className="jp-card jp-faq"><h2><L en="Questions" ur="سوالات" /></h2>
+        <details><summary><L en="What is the last date?" ur="آخری تاریخ کیا ہے؟" /></summary><p>{j.lastDate ? <L en={`${fd(j.lastDate)}${closed ? " (this job is now closed)." : left === 0 ? " (today)." : `, ${left} days from today.`} Late applications are usually not accepted.`} ur={`${fd(j.lastDate)}${closed ? " (یہ نوکری اب بند ہو چکی ہے)۔" : ""} دیر سے آنے والی درخواستیں عموماً قبول نہیں ہوتیں۔`} /> : <L en="The advertisement does not state a clear last date; check it before applying." ur="اشتہار میں واضح آخری تاریخ نہیں؛ درخواست سے پہلے اشتہار دیکھیں۔" />}</p></details>
+        <details><summary><L en="How many posts are there?" ur="کتنی آسامیاں ہیں؟" /></summary><p>{j.vacancies ? <L en={`${j.vacancies} post${j.vacancies > 1 ? "s" : ""}${j.department ? ` in ${j.department}` : ""}.`} ur={`${j.vacancies} آسامیاں۔`} /> : <L en="The number of posts is in the advertisement." ur="آسامیوں کی تعداد اشتہار میں دیکھیں۔" />}</p></details>
+        <details><summary><L en="Who can apply?" ur="کون درخواست دے سکتا ہے؟" /></summary><p><L en={`${j.education ? `Candidates with ${j.education}` : "Candidates who meet the advertised qualification"}${j.age ? `, aged ${j.age}` : ""}, and the domicile the advertisement asks for.`} ur={`${j.education ? `${j.education} والے امیدوار` : "اشتہار کی تعلیمی شرط پوری کرنے والے امیدوار"}${j.age ? `، عمر ${j.age}` : ""}، اور اشتہار میں مانگا گیا ڈومیسائل۔`} /></p></details>
+        <details><summary><L en="How do I know the advertisement is genuine?" ur="کیسے پتا چلے کہ اشتہار اصلی ہے؟" /></summary><p><L en={`Check it in the original source (${j.source}${kind === "paper" ? " e-paper" : " website"}). Government departments never ask for money to give a job; the only payment is the fee written in the advertisement, paid to a bank or the official portal.`} ur={`اصل ذریعے (${j.source}) میں ضرور دیکھیں۔ سرکاری محکمے نوکری دینے کے پیسے نہیں لیتے؛ صرف اشتہار میں لکھی فیس بینک یا سرکاری پورٹل پر جمع ہوتی ہے۔`} /></p></details>
+        <details><summary><L en="Does Mauqa accept applications?" ur="کیا موقع درخواستیں وصول کرتا ہے؟" /></summary><p><L en="No. Mauqa only lists the advertisement. Apply directly as the advertisement says." ur="نہیں۔ موقع صرف اشتہار دکھاتا ہے۔ درخواست اشتہار کے مطابق براہِ راست دیں۔" /></p></details>
       </section>
 
       {!closed && <AdSlot slot={AD_SLOTS.jobMid} kind="rect" />}

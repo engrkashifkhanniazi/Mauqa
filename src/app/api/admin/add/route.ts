@@ -8,6 +8,7 @@ import { slugify } from "@/pipeline/normalise";
 import { sha256 } from "@/lib/fetcher";
 import { saveAdImage } from "@/lib/adImage";
 import { ensureApplyHow } from "@/lib/applyHow";
+import { normProvince, normCity } from "@/lib/normalize";
 
 const blank = (v: unknown) => (v === "" ? undefined : v);
 const Body = z.object({
@@ -38,8 +39,8 @@ export async function POST(req: NextRequest) {
   const sr = rows(await db().execute(sql`insert into sources (key, name, base_url) values (${b.source}, ${b.source}, ${b.officialUrl}) on conflict (key) do update set key = excluded.key returning id`))[0];
   await ensureApplyHow();
   const slug = slugify(b.title, b.lastDate + "-" + sha256(b.officialUrl + b.title).slice(0, 6));
-  await db().execute(sql`insert into jobs (slug, title, department, source_id, city, education, bps, vacancies, last_date, status, official_url, apply_url, apply_how, dedupe_key, content_hash)
-    values (${slug}, ${b.title}, ${b.department ?? null}, ${Number(sr.id)}, ${b.city ?? null}, ${b.education ?? null}, ${b.bps ?? null}, ${b.vacancies ?? null}, ${b.lastDate}, 'published', ${b.officialUrl}, ${b.applyUrl ?? null}, ${b.applyHow ?? null}, ${slug + "|" + b.lastDate}, ${sha256("manual|" + slug)})
+  await db().execute(sql`insert into jobs (slug, title, department, source_id, city, province, education, bps, vacancies, last_date, status, official_url, apply_url, apply_how, dedupe_key, content_hash)
+    values (${slug}, ${b.title}, ${b.department ?? null}, ${Number(sr.id)}, ${b.city ? normCity(b.city) : null}, ${normProvince("", b.city ?? "", b.department ?? "", b.source)}, ${b.education ?? null}, ${b.bps ?? null}, ${b.vacancies ?? null}, ${b.lastDate}, 'published', ${b.officialUrl}, ${b.applyUrl ?? null}, ${b.applyHow ?? null}, ${slug + "|" + b.lastDate}, ${sha256("manual|" + slug)})
     on conflict (slug) do nothing`);
   const pic = form.get("adImage");
   if (pic instanceof File && pic.size > 0) {

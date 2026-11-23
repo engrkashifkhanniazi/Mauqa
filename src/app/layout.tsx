@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import AdminLink from "@/components/AdminLink";
+import CookieNotice from "@/components/CookieNotice";
 import { SITE, ADSENSE_CLIENT } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -26,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: `try{var d=document.documentElement,t=localStorage.getItem('rdt');if(t)d.dataset.theme=t;var l=localStorage.getItem('rdl'),p=location.pathname;if(p==='/'&&l==='ur'&&!/[?&]lang=en/.test(location.search)){location.replace('/ur'+location.search)}else if(p==='/ur'||(p!=='/'&&l==='ur')){d.lang='ur';d.dir='rtl'}}catch(e){}` }} />
         {ADSENSE_CLIENT && <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`} crossOrigin="anonymous" />}
       </head>
-      <body>{children}<AdminLink /><Analytics /></body>
+      <body>{children}<CookieNotice /><AdminLink /><Analytics /></body>
     </html>
   );
 }

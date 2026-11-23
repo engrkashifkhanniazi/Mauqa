@@ -5,6 +5,8 @@ export interface JobView {
   lastDate: string; education: string; age: string; verified: boolean; officialUrl: string;
   /** ISO date the listing was added to the site (for the New badge). */
   added?: string;
+  /** Admission / aptitude-test notice rather than a job (hidden by default). */
+  admission?: boolean;
 }
 export const GOV: SourceKey[] = ["FPSC", "KPPSC", "ETEA", "PPSC", "SPSC", "BPSC", "NTS", "OTS", "PTS", "ATS", "NJP"];
 export const isGov = (s: string) => (GOV as string[]).includes(s);
