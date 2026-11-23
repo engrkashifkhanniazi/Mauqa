@@ -11,3 +11,9 @@ jobs:
       - run: npm ci
       - name: Probe every paper reader (no AI, no database)
         run: npx tsx workers/newspapers.ts --probe
+      - name: Express inner pages full-size check
+        run: |
+          D=$(TZ=Asia/Karachi date +%Y%m%d)
+          for f in "Classified_PageC007_7" "Baqia_PageC005_5" "City_PageC004_4"; do
+            curl -s -o /tmp/x.jpg -w "express $f -> %{http_code} %{content_type} bytes=%{size_download}\n" -A "RozgarDeskBot/1.0" "https://www.express.com.pk/images/NP_ISB/$D/$D-NP_ISB-$f.jpg"
+          done
