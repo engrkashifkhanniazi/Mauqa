@@ -95,8 +95,9 @@ html[lang="ur"] body{font-family:"Noto Nastaliq Urdu",var(--body);line-height:2}
 html[lang="ur"] .card h3,html[lang="ur"] .ad h3{line-height:1.8}
 .rail h3,.rail .rh{font:600 12px var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 6px;display:block}
 /* ===== Redesign (Nov 2026): U2 English, U3 Urdu, A1 admin ===== */
-@font-face{font-family:"Jameel Noori Nastaleeq";src:local("Jameel Noori Nastaleeq"),local("Jameel Noori Nastaleeq Regular"),url(/fonts/jameel-noori.woff2) format("woff2");font-display:swap}
-html[lang="ur"] body{font-family:"Jameel Noori Nastaleeq","Noto Nastaliq Urdu",serif;line-height:1.9}
+@font-face{font-family:"Jameel Noori Nastaleeq";src:local("Jameel Noori Nastaleeq"),local("Jameel Noori Nastaleeq Regular"),url(/fonts/jameel-noori.woff2) format("woff2");font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+html[lang="ur"] body{font-family:"Jameel Noori Nastaleeq","Plus Jakarta Sans","Noto Nastaliq Urdu",serif;line-height:1.9}
+.sr{position:absolute!important;left:auto!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 .u-wrap{max-width:1240px;margin:0 auto;padding:0 24px}
 .u-search{display:flex;flex-wrap:wrap;gap:10px;max-width:760px;margin-top:22px}
 .u-search input{flex:1 1 280px;min-height:54px;border-radius:14px;border:0;padding:0 18px;background:#fff;color:#0F1F1A;font-size:16px}
@@ -141,7 +142,7 @@ html[lang="ur"] body{font-family:"Jameel Noori Nastaleeq","Noto Nastaliq Urdu",s
 .u2-act{display:flex;gap:8px;align-items:center}
 .u2-view{min-height:40px;padding:0 16px;border-radius:10px;border:0;background:#0E6B4D;color:#fff;font-weight:600;cursor:pointer}
 /* U3 Urdu */
-.u3{background:#FBF7EF;color:#1C1914;min-height:100vh;font-family:"Jameel Noori Nastaleeq","Noto Nastaliq Urdu",serif}
+.u3{background:#FBF7EF;color:#1C1914;min-height:100vh;font-family:"Jameel Noori Nastaleeq","Plus Jakarta Sans","Noto Nastaliq Urdu",sans-serif}
 .u3 h1,.u3 h2,.u3 h3{font-family:inherit;letter-spacing:0}
 .u3-nav{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;padding-top:16px;padding-bottom:16px}
 .u3-logo{font-size:30px;color:#1C1914;text-decoration:none}
