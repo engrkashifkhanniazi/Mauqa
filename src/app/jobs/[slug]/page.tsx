@@ -35,6 +35,8 @@ export default async function JobPage({ params }: P) {
   const paper = !isGov(j.source);
   const left = daysLeft(j.lastDate);
   const closed = j.status === "closed" || (left != null && left < 0);
+  // Long-closed jobs: the page goes away (404) after 90 days; the data stays in the database.
+  if (closed && left != null && left < -90) notFound();
   const h = howTo(j.source);
   const url = `${SITE}/jobs/${j.slug}`;
   const facts: [[string, string], string][] = [
@@ -57,10 +59,11 @@ export default async function JobPage({ params }: P) {
       <article className="jp-card">
         <div className="jp-badges"><bdi dir="ltr" className="jp-src">{j.source}</bdi><span className="jp-unv">{j.verified ? <L en="Verified" ur="تصدیق شدہ" /> : <L en="Unverified" ur="غیر تصدیق شدہ" />}</span>
           {left != null && <span className={"jp-left" + (closed ? " x" : left <= 7 ? " hot" : "")}>{closed ? <L en="Closed" ur="بند ہو چکی" /> : <><L en="Days left: " ur="باقی دن: " /><bdi dir="ltr">{left}</bdi></>}</span>}</div>
+        {closed && <p className="jp-closed"><L en="This job is closed: the last date has passed. See similar open jobs below." ur="یہ نوکری بند ہو چکی ہے، آخری تاریخ گزر گئی۔ نیچے ملتی جلتی کھلی نوکریاں دیکھیں۔" /></p>}
         <h1 dir="ltr">{j.title}</h1>
         {j.department && <p className="jp-dept" dir="ltr">{j.department}</p>}
         <dl className="jp-facts">{facts.filter(([, v]) => v).map(([[en, ur], v]) => <div key={en}><dt><L en={en} ur={ur} /></dt><dd><bdi dir="ltr">{v}</bdi></dd></div>)}</dl>
-        <div className="jp-acts"><SaveJob id={j.id} /><ShareBar url={url} title={j.title} dept={j.department} last={fd(j.lastDate)} /></div>
+        <div className="jp-acts"><SaveJob id={j.id} />{!closed && <ShareBar url={url} title={j.title} dept={j.department} last={fd(j.lastDate)} />}</div>
       </article>
 
       <section className="jp-card">
@@ -81,7 +84,7 @@ export default async function JobPage({ params }: P) {
         <p className="jp-note"><L en="If the advertisement says anything different, follow the advertisement." ur="اشتہار میں کچھ اور لکھا ہو تو اشتہار کی بات مانیں۔" /></p>
       </section>
 
-      <AdSlot slot={AD_SLOTS.jobMid} kind="rect" />
+      {!closed && <AdSlot slot={AD_SLOTS.jobMid} kind="rect" />}
 
       <Follow />
 
@@ -91,7 +94,7 @@ export default async function JobPage({ params }: P) {
         <a className="jp-more" href="/"><L en="See all jobs" ur="تمام نوکریاں دیکھیں" /></a></section>}
 
       <p className="jp-note jp-disc"><L en="Mauqa lists facts and links to official sources. It does not accept applications and is not affiliated with any department." ur="موقع صرف معلومات اور اصل ذریعے کا لنک دیتا ہے، درخواستیں قبول نہیں کرتا اور کسی محکمے سے وابستہ نہیں۔" /></p>
-      <AdSlot slot={AD_SLOTS.jobEnd} kind="rect" />
+      {!closed && <AdSlot slot={AD_SLOTS.jobEnd} kind="rect" />}
     </main>
     <footer className="u-foot"><div className="u-wrap"><FootLinks /></div></footer></div>);
 }

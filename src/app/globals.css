@@ -262,3 +262,4 @@ html[lang="ur"] .jp-from,html[lang="ur"] .jp-gen,html[lang="ur"] .jp-short{font-
 .u-more:hover{background:#0E6B4D;color:#fff}
 .sheet .sh{margin-top:4px}.sheet .sh-wa{flex:1;justify-content:center}
 @media (max-width:640px){.sheet .fc{grid-template-columns:1fr 1fr;gap:8px}.sheet .fc div{padding:9px 12px}.sheet .bd{gap:14px}}
+.jp-closed{background:#FCE8E6;color:#8A1C12;border-radius:12px;padding:10px 14px;font-weight:600}
