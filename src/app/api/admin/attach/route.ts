@@ -7,7 +7,7 @@ import { saveAdImage, ensureAdImageTable } from "@/lib/adImage";
 import { hostAllowed, ALLOWED_DOMAINS } from "@/pipeline/rules";
 import { uploadCodeOk } from "@/lib/uploadCode";
 /** e-paper sites may call this with an upload code (no cookie crosses sites) */
-const cors = (req: NextRequest) => { const o = req.headers.get("origin") ?? ""; let ok = false; try { ok = hostAllowed(o) && ALLOWED_DOMAINS.length > 0; } catch {} return ok ? { "access-control-allow-origin": o, "access-control-allow-methods": "POST, OPTIONS", "access-control-allow-headers": "x-rd-upload", vary: "origin" } : {}; };
+const cors = (req: NextRequest): Record<string, string> => { const o = req.headers.get("origin") ?? ""; let ok = false; try { ok = hostAllowed(o) && ALLOWED_DOMAINS.length > 0; } catch {} return ok ? { "access-control-allow-origin": o, "access-control-allow-methods": "POST, OPTIONS", "access-control-allow-headers": "x-rd-upload", vary: "origin" } : {}; };
 export async function OPTIONS(req: NextRequest) { return new NextResponse(null, { status: 204, headers: cors(req) }); }
 type R = Record<string, unknown>;
 const rows = (r: unknown) => ((r as { rows?: R[] }).rows ?? r) as R[];
