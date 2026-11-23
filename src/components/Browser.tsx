@@ -5,7 +5,8 @@ import AdSlot from "@/components/AdSlot";
 import Follow from "@/components/Follow";
 import InstallApp from "@/components/InstallApp";
 import FootLinks from "@/components/FootLinks";
-import { AD_SLOTS } from "@/lib/site";
+import { AD_SLOTS, SITE } from "@/lib/site";
+import ShareBar from "@/components/ShareBar";
 
 const msDay = 864e5;
 const fd = (d: string, ur = false) => d ? new Date(d + "T00:00:00").toLocaleDateString(ur ? "ur-PK" : "en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
@@ -14,27 +15,29 @@ const P = { brief: "M3 7h18v13H3zM9 7V5h6v2", bm: "M6 4h12v17l-6-4-6 4z", x: "M6
 
 /** Text in both designs. Job data itself (titles, departments) stays as published. */
 const T = {
-  en: { nav: ["All jobs", "Newspapers", "Job alerts"], h1: "Government jobs in KP and Islamabad, checked daily", lede: "Commission, testing-service and newspaper ads in one place, each linked to its official source.", ph: "Search by post, department or city", find: "Find jobs", region: "Region", all: "All", kp: "Khyber Pakhtunkhwa", fed: "Islamabad / Federal", pay: "Pay scale", any: "Any", closing: "Closing", within10: "Within 10 days", within21: "Within 3 weeks", source: "Source", show: "Show", savedOnly: "Saved jobs only", newOnly: "New in last 2 days", showF: "Filters", hideF: "Hide filters", newest: "Newest first", isNew: "New", clear: "Clear filters", open: "open jobs", soonest: "Closing soonest", most: "Most vacancies", last: "Last date", view: "View", none: "No jobs match these filters.", chips: ["Today's jobs", "Closing soon"], alertH: "Never miss a closing date", alertP: "Get an email when a new advertisement matches your search.", notify: "Notify me", unv: "Unverified", ver: "Verified", sample: "Sample", foot: "Always confirm details on the official advertisement.", how: "How to apply", steps: (s: string) => ["Read the eligibility in the official advertisement.", `Apply on the ${s} portal or as the ad says, before the last date.`, "Keep documents and fee receipt ready."], ad: "Detail and advertisement", left: (n: number) => n < 0 ? "Closed" : `${n} days left`, f: ["Last date", "Time left", "Pay scale", "Vacancies", "Education", "Age", "Location", "Source"], disc: "Mauqa links to the official source and does not accept applications.", toggle: "اردو" },
-  ur: { nav: ["تمام نوکریاں", "اخبارات", "جاب الرٹ"], h1: "خیبر پختونخوا اور اسلام آباد کی سرکاری نوکریاں، ایک جگہ", lede: "اخبارات اور سرکاری اداروں کے اشتہار، ہر ایک کے ساتھ اصل اشتہار کا لنک۔", ph: "عہدہ، محکمہ یا شہر لکھیں", find: "تلاش کریں", region: "علاقہ", all: "سب", kp: "خیبر پختونخوا", fed: "اسلام آباد / وفاقی", pay: "سکیل", any: "کوئی بھی", closing: "آخری تاریخ", within10: "دس دن کے اندر", within21: "تین ہفتوں کے اندر", source: "ذریعہ", show: "دکھائیں", savedOnly: "صرف محفوظ نوکریاں", newOnly: "پچھلے دو دن کی نئی", showF: "فلٹر", hideF: "فلٹر بند کریں", newest: "نئی پہلے", isNew: "نئی", clear: "فلٹر صاف کریں", open: "نوکریاں موجود ہیں", soonest: "جلد ختم ہونے والی پہلے", most: "زیادہ اسامیاں پہلے", last: "آخری تاریخ", view: "تفصیل", none: "ان فلٹرز کے مطابق کوئی نوکری نہیں ملی۔", chips: ["آج کی نوکریاں", "جلد ختم ہونے والی"], alertH: "کوئی آخری تاریخ نہ چھوٹے", alertP: "نیا اشتہار آنے پر ای میل حاصل کریں۔", notify: "مجھے بتائیں", unv: "غیر تصدیق شدہ", ver: "تصدیق شدہ", sample: "نمونہ", foot: "درخواست سے پہلے اصل اشتہار ضرور دیکھیں۔", how: "درخواست کیسے دیں", steps: (s: string) => ["اصل اشتہار میں اہلیت پڑھیں۔", `آخری تاریخ سے پہلے ${s} کے طریقے کے مطابق درخواست دیں۔`, "کاغذات اور فیس کی رسید تیار رکھیں۔"], ad: "تفصیل اور اشتہار", left: (n: number) => n < 0 ? "بند ہو چکی" : `${n} دن باقی`, f: ["آخری تاریخ", "باقی وقت", "سکیل", "اسامیاں", "تعلیم", "عمر", "جگہ", "ذریعہ"], disc: "موقع صرف اصل ذریعے کا لنک دیتا ہے، درخواستیں قبول نہیں کرتا۔", toggle: "English" },
+  en: { nav: ["All jobs", "Newspapers", "Job alerts"], h1: "Government jobs in KP and Islamabad, checked daily", lede: "Commission, testing-service and newspaper ads in one place, each linked to its official source.", ph: "Search by post, department or city", find: "Find jobs", region: "Region", all: "All", kp: "Khyber Pakhtunkhwa", fed: "Islamabad / Federal", pay: "Pay scale", any: "Any", closing: "Closing", within10: "Within 10 days", within21: "Within 3 weeks", source: "Source", show: "Show", savedOnly: "Saved jobs only", newOnly: "New in last 2 days", today: "Added today", yday: "Added yesterday", more: (n: number) => `Show more jobs (${n})`, showF: "Filters", hideF: "Hide filters", newest: "Newest first", isNew: "New", clear: "Clear filters", open: "open jobs", soonest: "Closing soonest", most: "Most vacancies", last: "Last date", view: "View", none: "No jobs match these filters.", chips: ["Today's jobs", "Closing soon"], alertH: "Never miss a closing date", alertP: "Get an email when a new advertisement matches your search.", notify: "Notify me", unv: "Unverified", ver: "Verified", sample: "Sample", foot: "Always confirm details on the official advertisement.", how: "How to apply", steps: (s: string) => ["Read the eligibility in the official advertisement.", `Apply on the ${s} portal or as the ad says, before the last date.`, "Keep documents and fee receipt ready."], ad: "Detail and advertisement", left: (n: number) => n < 0 ? "Closed" : `${n} days left`, f: ["Last date", "Time left", "Pay scale", "Vacancies", "Education", "Age", "Location", "Source"], disc: "Mauqa links to the official source and does not accept applications.", toggle: "اردو" },
+  ur: { nav: ["تمام نوکریاں", "اخبارات", "جاب الرٹ"], h1: "خیبر پختونخوا اور اسلام آباد کی سرکاری نوکریاں، ایک جگہ", lede: "اخبارات اور سرکاری اداروں کے اشتہار، ہر ایک کے ساتھ اصل اشتہار کا لنک۔", ph: "عہدہ، محکمہ یا شہر لکھیں", find: "تلاش کریں", region: "علاقہ", all: "سب", kp: "خیبر پختونخوا", fed: "اسلام آباد / وفاقی", pay: "سکیل", any: "کوئی بھی", closing: "آخری تاریخ", within10: "دس دن کے اندر", within21: "تین ہفتوں کے اندر", source: "ذریعہ", show: "دکھائیں", savedOnly: "صرف محفوظ نوکریاں", newOnly: "پچھلے دو دن کی نئی", today: "آج شامل ہوئیں", yday: "کل شامل ہوئیں", more: (n: number) => `مزید نوکریاں دکھائیں (${n})`, showF: "فلٹر", hideF: "فلٹر بند کریں", newest: "نئی پہلے", isNew: "نئی", clear: "فلٹر صاف کریں", open: "نوکریاں موجود ہیں", soonest: "جلد ختم ہونے والی پہلے", most: "زیادہ اسامیاں پہلے", last: "آخری تاریخ", view: "تفصیل", none: "ان فلٹرز کے مطابق کوئی نوکری نہیں ملی۔", chips: ["آج کی نوکریاں", "جلد ختم ہونے والی"], alertH: "کوئی آخری تاریخ نہ چھوٹے", alertP: "نیا اشتہار آنے پر ای میل حاصل کریں۔", notify: "مجھے بتائیں", unv: "غیر تصدیق شدہ", ver: "تصدیق شدہ", sample: "نمونہ", foot: "درخواست سے پہلے اصل اشتہار ضرور دیکھیں۔", how: "درخواست کیسے دیں", steps: (s: string) => ["اصل اشتہار میں اہلیت پڑھیں۔", `آخری تاریخ سے پہلے ${s} کے طریقے کے مطابق درخواست دیں۔`, "کاغذات اور فیس کی رسید تیار رکھیں۔"], ad: "تفصیل اور اشتہار", left: (n: number) => n < 0 ? "بند ہو چکی" : `${n} دن باقی`, f: ["آخری تاریخ", "باقی وقت", "سکیل", "اسامیاں", "تعلیم", "عمر", "جگہ", "ذریعہ"], disc: "موقع صرف اصل ذریعے کا لنک دیتا ہے، درخواستیں قبول نہیں کرتا۔", toggle: "English" },
 };
 
-export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boolean }) {
+export default function Browser({ jobs, sample, lang: pageLang = "en" }: { jobs: JobView[]; sample: boolean; lang?: "en" | "ur" }) {
+  const ur = pageLang === "ur";
+  const PAGE = 20;
   const [now] = useState(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; });
   const isNew = (j: JobView) => !!j.added && (now.getTime() - new Date(j.added + "T00:00:00").getTime()) / msDay <= 2;
   const left = (j: JobView) => Math.round((new Date(j.lastDate + "T00:00:00").getTime() - now.getTime()) / msDay);
   const [q, setQ] = useState(""); const [pv, setPv] = useState(""); const [bp, setBp] = useState("");
   const [cl, setCl] = useState(0); const [src, setSrc] = useState<string[]>([]); const [onlySaved, setOnlySaved] = useState(false);
-  const [sort, setSort] = useState("n"); const [onlyNew, setOnlyNew] = useState(false); const [fo, setFo] = useState(false); const [saved, setSaved] = useState<number[]>([]);
-  const [open, setOpen] = useState<JobView | null>(null); const [ur, setUr] = useState(false); const [msg, setMsg] = useState("");
+  const [sort, setSort] = useState("n"); const [onlyNew, setOnlyNew] = useState(false); const [fo, setFo] = useState(false); const [shown, setShown] = useState(PAGE); const [saved, setSaved] = useState<number[]>([]);
+  const [open, setOpen] = useState<JobView | null>(null); const [msg, setMsg] = useState("");
   const dlg = useRef<HTMLDialogElement>(null); const closeBtn = useRef<HTMLButtonElement>(null); const lastFocus = useRef<HTMLElement | null>(null);
   const t = ur ? T.ur : T.en;
 
-  useEffect(() => { try { setSaved(JSON.parse(localStorage.getItem("rdf") || "[]")); } catch {} setUr(document.documentElement.lang === "ur"); }, []);
+  useEffect(() => { try { setSaved(JSON.parse(localStorage.getItem("rdf") || "[]")); } catch {} }, []);
   useEffect(() => { if (open) { lastFocus.current = document.activeElement as HTMLElement; dlg.current?.showModal(); closeBtn.current?.focus(); } }, [open]);
 
   const toggleSave = (id: number) => setSaved((s) => { const n = s.includes(id) ? s.filter((x) => x !== id) : [...s, id]; try { localStorage.setItem("rdf", JSON.stringify(n)); } catch {} return n; });
   const reset = () => { setQ(""); setPv(""); setBp(""); setCl(0); setSrc([]); setOnlySaved(false); setOnlyNew(false); };
-  const lang = () => { const r = document.documentElement; const u = !ur; r.lang = u ? "ur" : "en"; r.dir = u ? "rtl" : "ltr"; setUr(u); try { localStorage.setItem("rdl", u ? "ur" : "en"); } catch {} window.scrollTo({ top: 0 }); };
+  const lang = () => { try { localStorage.setItem("rdl", ur ? "en" : "ur"); } catch {} window.location.assign(ur ? "/" : "/ur"); };
 
   const filtered = useMemo(() => {
     const ql = q.trim().toLowerCase();
@@ -53,6 +56,11 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
     }).sort(by);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobs, q, pv, bp, cl, src, onlySaved, onlyNew, saved, sort, now]);
+  useEffect(() => setShown(PAGE), [q, pv, bp, cl, src, onlySaved, onlyNew, sort]);
+  const page = filtered.slice(0, shown);
+  const dayLabel = (d?: string) => { if (!d) return ""; const n = Math.round((now.getTime() - new Date(d + "T00:00:00").getTime()) / msDay); return n <= 0 ? t.today : n === 1 ? t.yday : fd(d, ur); };
+  const head = (j: JobView, i: number) => sort === "n" && j.added && (i === 0 || page[i - 1].added !== j.added) ? <h2 className="u-day">{dayLabel(j.added)}</h2> : null;
+  const more = filtered.length > shown ? <button type="button" className="u-more" onClick={() => setShown((n) => n + PAGE)}>{t.more(filtered.length - shown)}</button> : null;
   const count = (s: string) => jobs.filter((j) => j.source === s).length;
   const feedAd = (i: number) => (i === 3 || i === 11) ? <AdSlot key={"ad" + i} slot={AD_SLOTS.listFeed} kind="feed" /> : null;
   const toList = () => document.getElementById("jobs")?.scrollIntoView({ behavior: "smooth" });
@@ -88,7 +96,7 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
   const follow = <Follow />;
 
   return (
-    <div className={ur ? "u3" : "u2"}>
+    <div className={ur ? "u3" : "u2"} dir={ur ? "rtl" : "ltr"} lang={ur ? "ur" : "en"}>
       <a className="skip" href="#jobs">Skip to jobs</a>
       {!ur ? (<>
         <header className="u2-top"><div className="u-wrap u2-nav">
@@ -98,14 +106,14 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
           <div className="u-wrap u2-hero" id="top"><h1>{t.h1}</h1><p>{t.lede}</p>{search}</div></header>
         <main className="u-wrap u2-main" id="jobs">{filters}
           <section className="u2-list" aria-live="polite">{bar}
-            {filtered.length ? filtered.map((j, i) => (<Fragment key={j.id}>
+            {page.length ? page.map((j, i) => (<Fragment key={j.id}>{head(j, i)}
               <article className="u2-row">
                 <div className="u2-ic"><I d={P.brief} s={22} /></div>
                 <div className="u2-tx"><h3><button type="button" onClick={() => setOpen(j)}>{j.title}</button></h3><p>{[j.department, j.city].filter(Boolean).join(" · ")}</p><span className="u2-src">{isNew(j) && <b className="nw">{t.isNew}</b>}{j.source} · {badge(j)}</span></div>
                 <div className="u2-tags">{j.bps != null && <span>BPS-{j.bps}</span>}{j.vacancies != null && <span>{j.vacancies} posts</span>}{j.education && <span>{j.education}</span>}</div>
                 <div className="u2-date"><small>{t.last}</small><b>{fd(j.lastDate)}</b><em className={left(j) <= 7 ? "hot" : ""}>{t.left(left(j))}</em></div>
                 <div className="u2-act"><Save j={j} /><button className="u2-view" type="button" onClick={() => setOpen(j)}>{t.view}</button></div>
-              </article>{feedAd(i)}</Fragment>)) : <div className="u-empty">{t.none}</div>}
+              </article>{feedAd(i)}</Fragment>)) : <div className="u-empty">{t.none}</div>}{more}
             {follow}{alerts}
           </section></main>
       </>) : (<>
@@ -116,14 +124,14 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
           <div className="u3-chips"><button type="button" aria-pressed={cl === 0 && !pv} onClick={() => { setCl(0); setPv(""); }}>{t.chips[0]}</button><button type="button" aria-pressed={cl === 10} onClick={() => setCl(10)}>{t.chips[1]}</button><button type="button" aria-pressed={pv === "kp"} onClick={() => setPv(pv === "kp" ? "" : "kp")}>{t.kp}</button><button type="button" aria-pressed={pv === "fed"} onClick={() => setPv(pv === "fed" ? "" : "fed")}>{t.fed}</button></div>
           <div className="u3-body">{filters}
             <section aria-live="polite">{bar}
-              <div className="u3-grid">{filtered.length ? filtered.map((j, i) => (<Fragment key={j.id}>
+              <div className="u3-grid">{page.length ? page.map((j, i) => (<Fragment key={j.id}>{head(j, i)}
                 <article className="u3-card">
                   <div className="u3-cap"><span dir="ltr">{isNew(j) && <b className="nw">{t.isNew}</b>}{j.source}</span><Save j={j} /></div>
                   <h3 dir="auto"><button type="button" onClick={() => setOpen(j)}>{j.title}</button></h3>
                   <p dir="auto">{j.department}</p>
                   <div className="u3-tags">{j.city && <span dir="auto">{j.city}</span>}{j.bps != null && <span dir="ltr">BPS-{j.bps}</span>}{j.education && <span dir="auto">{j.education}</span>}</div>
                   <div className="u3-foot"><span>{t.last}: <b>{fd(j.lastDate, true)}</b></span><button type="button" onClick={() => setOpen(j)}>{t.view}</button></div>
-                </article>{feedAd(i)}</Fragment>)) : <div className="u-empty">{t.none}</div>}</div>
+                </article>{feedAd(i)}</Fragment>)) : <div className="u-empty">{t.none}</div>}</div>{more}
               {follow}{alerts}
             </section></div></main>
       </>)}
@@ -134,8 +142,8 @@ export default function Browser({ jobs, sample }: { jobs: JobView[]; sample: boo
           <header><h2 id="dT" dir="auto">{open.title}</h2><button ref={closeBtn} className="u-sv" type="button" aria-label="Close" onClick={() => dlg.current?.close()}><I d={P.x} /></button></header>
           <div className="bd"><p className="nt" dir="auto">{open.department}. {badge(open)}</p>
             <div className="fc">{([[t.f[0], fd(open.lastDate, ur)], [t.f[1], t.left(left(open))], [t.f[2], open.bps != null ? `BPS-${open.bps}` : ""], [t.f[3], open.vacancies != null ? String(open.vacancies) : ""], [t.f[4], open.education], [t.f[5], open.age], [t.f[6], open.city], [t.f[7], open.source]] as const).filter(([, v]) => v).map(([k, v]) => <div key={k}><small>{k}</small><b dir="auto">{v}</b></div>)}</div>
-            <div><h3 style={{ fontSize: 17, marginBottom: 10 }}>{t.how}</h3><ol>{t.steps(open.source).map((s) => <li key={s}>{s}</li>)}</ol></div>
-            <a className="cta" href={`/jobs/${open.slug}`} style={{ textAlign: "center", textDecoration: "none", display: "grid", placeItems: "center" }}>{t.ad}</a>
+                        <a className="cta" href={`/jobs/${open.slug}`} style={{ textAlign: "center", textDecoration: "none", display: "grid", placeItems: "center" }}>{t.ad}</a>
+            <ShareBar url={`${SITE}/jobs/${open.slug}`} title={open.title} dept={open.department} last={fd(open.lastDate)} />
             <p className="nt">{t.disc}</p></div>
         </div>}
       </dialog>

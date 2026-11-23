@@ -256,3 +256,9 @@ html[lang="ur"] .jp-how h2,html[lang="ur"] .jp-how h3,html[lang="ur"] .jp-rel h2
 .jp-gen{background:#F4F8F6;border-radius:12px;padding:10px 14px;display:flex;flex-direction:column;gap:2px;line-height:1.6}
 .jp-short{display:grid;gap:8px;margin:0}.jp-short div{display:grid;gap:2px}.jp-short dt{font-weight:700}.jp-short dd{margin:0;line-height:1.6;color:#2C4A42}
 html[lang="ur"] .jp-from,html[lang="ur"] .jp-gen,html[lang="ur"] .jp-short{font-family:"Jameel Noori Nastaleeq","Noto Nastaliq Urdu",serif;font-size:18px;line-height:2.1}
+.u-day{grid-column:1/-1;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#56706A;margin:10px 0 0}
+.u3 .u-day{text-transform:none;letter-spacing:0;font-size:18px;font-family:"Jameel Noori Nastaleeq","Noto Nastaliq Urdu",serif}
+.u-more{align-self:center;margin:14px auto 0;min-height:48px;padding:0 26px;border-radius:12px;border:1px solid #0E6B4D;background:#fff;color:#0E6B4D;font-weight:700;cursor:pointer;display:block}
+.u-more:hover{background:#0E6B4D;color:#fff}
+.sheet .sh{margin-top:4px}.sheet .sh-wa{flex:1;justify-content:center}
+@media (max-width:640px){.sheet .fc{grid-template-columns:1fr 1fr;gap:8px}.sheet .fc div{padding:9px 12px}.sheet .bd{gap:14px}}
