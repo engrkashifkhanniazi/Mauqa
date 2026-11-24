@@ -218,7 +218,7 @@ export default function Browser({ jobs, sample, lang: pageLang = "en" }: { jobs:
           <div className="bd"><p className="nt" dir="auto">{open.department}{open.department ? " · " : ""}{kind(open)} · {open.source}</p>
             <div className="fc">{([[t.f[0], fd(open.lastDate, ur)], [t.f[1], t.left(left(open))], [t.f[2], open.bps != null ? `BPS-${open.bps}` : ""], [t.basic, payRange(open.bps)], [t.f[3], open.vacancies != null ? String(open.vacancies) : ""], [t.f[4], open.education], [t.f[5], open.age], [t.f[6], [open.city, open.province].filter(Boolean).join(", ")]] as const).filter(([, v]) => v).map(([k, v]) => <div key={k}><small>{k}</small><b dir="auto">{v}</b></div>)}</div>
             <a className="cta" href={`/jobs/${open.slug}`} style={{ textAlign: "center", textDecoration: "none", display: "grid", placeItems: "center" }}>{t.ad}</a>
-            <ShareBar url={`${SITE}/jobs/${open.slug}`} title={open.title} dept={open.department} last={fd(open.lastDate)} />
+            <ShareBar url={`${SITE}/jobs/${open.slug}`} title={open.title} dept={open.department} last={fd(open.lastDate)} posts={open.vacancies} bps={open.bps} />
             <p className="nt">{t.disc}</p></div>
         </div>}
       </dialog>

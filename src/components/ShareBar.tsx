@@ -4,7 +4,7 @@ import { WA_CHANNEL } from "@/lib/site";
 /** WhatsApp share (ready-made message), native share where available, copy link.
  *  With `pic` (URL of the ad picture): on phones that can share files, the same "Share on WhatsApp" button sends the picture together
  *  with the message; where that is not possible (desktop) it sends the message only and a "Save picture" link is shown. */
-export default function ShareBar({ url, title, dept, last, pic }: { url: string; title: string; dept: string; last: string; pic?: string }) {
+export default function ShareBar({ url, title, dept, last, pic, posts, bps }: { url: string; title: string; dept: string; last: string; pic?: string; posts?: number | null; bps?: number | null }) {
   const [copied, setCopied] = useState(false); const [can, setCan] = useState(false);
   const [file, setFile] = useState<File | null>(null); const [files, setFiles] = useState(false);
   const [ur, setUr] = useState(false); // the message follows the language of the page (Urdu page = Urdu message)
@@ -25,7 +25,8 @@ export default function ShareBar({ url, title, dept, last, pic }: { url: string;
   }, [pic]);
   // Picture + short caption + link + channel follow line (the picture is attached by the phone's share sheet, see above).
   const msg = [
-    [`*${title}*`, dept, last ? (ur ? `آخری تاریخ: ${last}` : `Last date: ${last}`) : ""].filter(Boolean).join("\n"),
+    [`*${title}*`, dept, last ? (ur ? `آخری تاریخ: ${last}` : `Last date: ${last}`) : "",
+      posts || bps != null ? [posts ? (ur ? `آسامیاں: ${posts}` : `Posts: ${posts}`) : "", bps != null ? `BPS-${bps}` : ""].filter(Boolean).join(" · ") : ""].filter(Boolean).join("\n"),
     [ur ? "تنخواہ، اپلائی کرنے کا طریقہ اور ضروری کاغذات:" : "Pay, how to apply and documents:", url].join("\n"),
     WA_CHANNEL ? [ur ? "مزید نوکریوں کے لیے ہمارا واٹس ایپ چینل فالو کریں 👇" : "For more jobs, follow our WhatsApp channel 👇", WA_CHANNEL].join("\n") : "",
   ].filter(Boolean).join("\n\n");
