@@ -31,3 +31,12 @@ describe("budget", () => {
   it("blocks at or over cap and when cap unset", () => { expect(withinBudget(4.99, 5)).toBe(true); expect(withinBudget(5, 5)).toBe(false); expect(withinBudget(0, 0)).toBe(false); });
   it("unknown model cost is infinite", () => expect(costUsd("gpt-x", 1, 1)).toBe(Infinity));
 });
+
+describe("no admissions or scholarships", () => {
+  it("rejects scholarship, admission and aptitude-test notices", () => {
+    for (const title of ["Scholarships 2026 for BS students", "Admissions open BS Program", "NAT-IV National Aptitude Test"]) {
+      expect(evaluate({ title, officialUrl: "https://nts.org.pk/x", lastDate: "2099-01-01" }).action).toBe("reject");
+    }
+    expect(evaluate({ title: "Junior Clerk BPS-11", officialUrl: "https://nts.org.pk/x", lastDate: "2099-01-01" }).action).toBe("publish");
+  });
+});

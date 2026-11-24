@@ -9,7 +9,7 @@ export const AdSchema = z.object({ title: z.string().nullable(), department: z.s
   education: z.string().nullable(), age_min: z.number().int().nullable(), age_max: z.number().int().nullable(), city: z.string().nullable(), province: z.string().nullable(), last_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
   is_recruitment_ad: z.boolean(), confidence: z.number().min(0).max(1) });
 export type AdFacts = z.infer<typeof AdSchema>;
-const PROMPT = `Extract structured facts from this Pakistani government job advertisement image. Return ONLY JSON with keys: title, department, vacancies (total posts, integer), bps (integer 1-22), education, age_min, age_max, city, province, last_date (YYYY-MM-DD), is_recruitment_ad (false for results/admit cards/notices), confidence (0-1). Use null for anything not printed in the ad. Do not guess. Do not copy full ad text.`;
+const PROMPT = `Extract structured facts from this Pakistani government job advertisement image. Return ONLY JSON with keys: title, department, vacancies (total posts, integer), bps (integer 1-22), education, age_min, age_max, city, province, last_date (YYYY-MM-DD), is_recruitment_ad (false for results/admit cards/notices and for admissions, scholarships, entrance or aptitude tests), confidence (0-1). Use null for anything not printed in the ad. Do not guess. Do not copy full ad text.`;
 const MODELS = ["claude-haiku-5-5", "claude-sonnet-5-5"] as const;
 const mediaType = (u: string) => (/\.png/i.test(u) ? "image/png" : /\.webp/i.test(u) ? "image/webp" : "image/jpeg");
 

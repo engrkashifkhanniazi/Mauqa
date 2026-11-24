@@ -1,4 +1,5 @@
 import { checkScope } from "./scope";
+import { isAdmission } from "../lib/normalize";
 export interface Candidate {
   title?: string | null; officialUrl?: string | null; lastDate?: string | null; noDeadlineStated?: boolean;
   regionText?: string; aiUsed?: boolean; ocrConflict?: boolean; aiConfidence?: number | null; conflictsWithExisting?: boolean; fieldsConfirmedAgainstSource?: boolean;
@@ -14,6 +15,8 @@ export function hostAllowed(url: string, allowed = ALLOWED_DOMAINS) {
 export function evaluate(c: Candidate, today = new Date()): Decision {
   const reasons: string[] = [];
   if (c.title && NON_JOB.test(c.title)) return { action: "reject", verified: false, reasons: ["non-job notice"] };
+  // Owner decision 24 Nov 2026: no scholarships, admissions or entrance/aptitude-test notices at all.
+  if (c.title && isAdmission(c.title)) return { action: "reject", verified: false, reasons: ["admission / scholarship / test notice (not a job)"] };
   if (c.regionText !== undefined) { const sc = checkScope(c.title, c.regionText); if (!sc.inScope) return { action: "reject", verified: false, reasons: [sc.reason] }; }
   if (!c.title?.trim()) reasons.push("missing title");
   if (!c.officialUrl) reasons.push("missing source url");

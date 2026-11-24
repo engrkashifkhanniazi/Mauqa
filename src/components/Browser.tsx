@@ -21,7 +21,7 @@ const AGENCIES = ALL_SOURCES.filter((s) => sourceKind(s) !== "paper");
 /** Interface text in both designs. Job data (titles, departments) stays as published. */
 const T = {
   en: { nav: ["All jobs", "Newspapers", "Testing & commissions", "Job alerts"], h1: "Government jobs in KP and Islamabad, checked daily", lede: "Commission, testing-service and newspaper ads in one place, each linked to its official source.", ph: "Search post, department, city, BPS…", find: "Find jobs", clearQ: "Clear search",
-    region: "Region", all: "All", kp: "Khyber Pakhtunkhwa", fed: "Islamabad / Federal", city: "City / district", anyCity: "All cities", edu: "Qualification", pay: "Pay scale", any: "Any", noBps: "Contract / lump-sum", closing: "Closing", urgent: "Urgent (3 days)", within10: "Within 10 days", within21: "Within 3 weeks", source: "Source", show: "Show", savedOnly: "Saved jobs only", newOnly: "New in last 2 days", admissions: "Include admission & test notices",
+    region: "Region", all: "All", kp: "Khyber Pakhtunkhwa", fed: "Islamabad / Federal", city: "City / district", anyCity: "All cities", edu: "Qualification", pay: "Pay scale", any: "Any", noBps: "Contract / lump-sum", closing: "Closing", urgent: "Urgent (3 days)", within10: "Within 10 days", within21: "Within 3 weeks", source: "Source", show: "Show", savedOnly: "Saved jobs only", newOnly: "New in last 2 days",
     eduL: { "": "Any qualification", matric: "Matric / literate", inter: "Intermediate / DAE", bachelor: "Bachelor (14–16 yrs)", master: "Master / MPhil", medical: "Medical / specialised" } as Record<Edu, string>,
     chips: ["All open", "Closing ≤ 3 days", "KP", "Islamabad / Federal", "BPS 17+"], filters: "Filters", done: (n: number) => `Show ${n} matching jobs`, clear: "Clear all", open: "open jobs", sort: "Sort",
     newest: "Newest first", soonest: "Closing soonest", most: "Most vacancies", highest: "Highest BPS", today: "Added today", yday: "Added yesterday", more: (n: number) => `Show 15 more (${n} remaining)`, isNew: "New",
@@ -30,7 +30,7 @@ const T = {
     ad: "Detail and advertisement", basic: "Basic pay (BPS-2026)", f: ["Last date", "Time left", "Pay scale", "Vacancies", "Education", "Age", "Location", "Source"], disc: "Mauqa links to the official source and does not accept applications.", toggle: "اردو",
     tabs: ["Jobs", "Filters", "Saved", "Alerts"] },
   ur: { nav: ["تمام نوکریاں", "اخبارات", "ٹیسٹنگ و کمیشن", "جاب الرٹ"], h1: "خیبر پختونخوا اور اسلام آباد کی سرکاری نوکریاں، ایک جگہ", lede: "اخبارات اور سرکاری اداروں کے اشتہار، ہر ایک کے ساتھ اصل اشتہار کا لنک۔", ph: "عہدہ، محکمہ، شہر یا سکیل لکھیں", find: "تلاش کریں", clearQ: "تلاش صاف کریں",
-    region: "علاقہ", all: "سب", kp: "خیبر پختونخوا", fed: "اسلام آباد / وفاقی", city: "شہر / ضلع", anyCity: "تمام شہر", edu: "تعلیم", pay: "سکیل", any: "کوئی بھی", noBps: "کنٹریکٹ / یکمشت", closing: "آخری تاریخ", urgent: "فوری (3 دن)", within10: "دس دن کے اندر", within21: "تین ہفتوں کے اندر", source: "ذریعہ", show: "دکھائیں", savedOnly: "صرف محفوظ نوکریاں", newOnly: "پچھلے دو دن کی نئی", admissions: "داخلے اور ٹیسٹ کے اعلانات بھی دکھائیں",
+    region: "علاقہ", all: "سب", kp: "خیبر پختونخوا", fed: "اسلام آباد / وفاقی", city: "شہر / ضلع", anyCity: "تمام شہر", edu: "تعلیم", pay: "سکیل", any: "کوئی بھی", noBps: "کنٹریکٹ / یکمشت", closing: "آخری تاریخ", urgent: "فوری (3 دن)", within10: "دس دن کے اندر", within21: "تین ہفتوں کے اندر", source: "ذریعہ", show: "دکھائیں", savedOnly: "صرف محفوظ نوکریاں", newOnly: "پچھلے دو دن کی نئی",
     eduL: { "": "کوئی بھی تعلیم", matric: "میٹرک / خواندہ", inter: "انٹرمیڈیٹ / ڈی اے ای", bachelor: "بیچلر (14 تا 16 سال)", master: "ماسٹر / ایم فل", medical: "میڈیکل / خصوصی" } as Record<Edu, string>,
     chips: ["تمام کھلی", "3 دن میں ختم", "خیبر پختونخوا", "اسلام آباد / وفاقی", "سکیل 17+"], filters: "فلٹر", done: (n: number) => `${n} نوکریاں دکھائیں`, clear: "سب صاف کریں", open: "نوکریاں موجود ہیں", sort: "ترتیب",
     newest: "نئی پہلے", soonest: "جلد ختم ہونے والی پہلے", most: "زیادہ اسامیاں پہلے", highest: "بڑا سکیل پہلے", today: "آج شامل ہوئیں", yday: "کل شامل ہوئیں", more: (n: number) => `مزید 15 دکھائیں (${n} باقی)`, isNew: "نئی",
@@ -47,7 +47,7 @@ export default function Browser({ jobs, sample, lang: pageLang = "en" }: { jobs:
   const isNew = (j: JobView) => !!j.added && (now.getTime() - new Date(j.added + "T00:00:00").getTime()) / msDay <= 2;
   const left = (j: JobView) => Math.round((new Date(j.lastDate + "T00:00:00").getTime() - now.getTime()) / msDay);
   const [q, setQ] = useState(""); const [pv, setPv] = useState(""); const [bp, setBp] = useState(""); const [city, setCity] = useState(""); const [edu, setEdu] = useState<Edu>("");
-  const [cl, setCl] = useState(0); const [src, setSrc] = useState<string[]>([]); const [onlySaved, setOnlySaved] = useState(false); const [onlyNew, setOnlyNew] = useState(false); const [adm, setAdm] = useState(false);
+  const [cl, setCl] = useState(0); const [src, setSrc] = useState<string[]>([]); const [onlySaved, setOnlySaved] = useState(false); const [onlyNew, setOnlyNew] = useState(false);
   const [sort, setSort] = useState("n"); const [fo, setFo] = useState(false); const [shown, setShown] = useState(PAGE); const [saved, setSaved] = useState<number[]>([]);
   const [open, setOpen] = useState<JobView | null>(null); const [msg, setMsg] = useState("");
   const dlg = useRef<HTMLDialogElement>(null); const closeBtn = useRef<HTMLButtonElement>(null); const lastFocus = useRef<HTMLElement | null>(null);
@@ -61,7 +61,7 @@ export default function Browser({ jobs, sample, lang: pageLang = "en" }: { jobs:
   const lang = () => { try { localStorage.setItem("rdl", ur ? "en" : "ur"); } catch {} window.location.assign(ur ? "/" : "/ur"); };
   const toList = () => document.getElementById("jobs")?.scrollIntoView({ behavior: "smooth" });
 
-  const pool = useMemo(() => jobs.filter((j) => adm || !j.admission), [jobs, adm]);
+  const pool = useMemo(() => jobs.filter((j) => !j.admission), [jobs]);
   const cities = useMemo(() => [...new Set(pool.map((j) => j.city).filter(Boolean))].sort(), [pool]);
   const filtered = useMemo(() => {
     const ql = q.trim().toLowerCase().replace(/\s+/g, " ");
@@ -84,7 +84,7 @@ export default function Browser({ jobs, sample, lang: pageLang = "en" }: { jobs:
     }).sort(by);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pool, q, pv, city, edu, bp, cl, src, onlySaved, onlyNew, saved, sort, now]);
-  useEffect(() => setShown(PAGE), [q, pv, city, edu, bp, cl, src, onlySaved, onlyNew, sort, adm]);
+  useEffect(() => setShown(PAGE), [q, pv, city, edu, bp, cl, src, onlySaved, onlyNew, sort]);
   const page = filtered.slice(0, shown);
   const count = (s: string) => pool.filter((j) => j.source === s).length;
 
@@ -140,7 +140,7 @@ export default function Browser({ jobs, sample, lang: pageLang = "en" }: { jobs:
         <fieldset><legend>{t.pay}</legend>{[["", t.any], ["1-10", "BPS 1–10"], ["11-16", "BPS 11–16"], ["17-22", "BPS 17+"], ["none", t.noBps]].map(([v, l]) => <label key={v}><input type="radio" name="bp" checked={bp === v} onChange={() => setBp(v)} /><span dir={v && v !== "none" ? "ltr" : undefined}>{l}</span></label>)}</fieldset>
         <fieldset><legend>{t.closing}</legend>{([[0, t.any], [3, t.urgent], [10, t.within10], [21, t.within21]] as const).map(([v, l]) => <label key={v}><input type="radio" name="cl" checked={cl === v} onChange={() => setCl(v)} />{l}</label>)}</fieldset>
         <fieldset><legend>{t.source}</legend>{ALL_SOURCES.filter((s) => count(s) > 0).map((s) => <label key={s}><input type="checkbox" checked={src.includes(s)} onChange={(e) => setSrc((x) => e.target.checked ? [...x, s] : x.filter((y) => y !== s))} /><span dir="ltr">{s}</span><span className="c">{count(s)}</span></label>)}</fieldset>
-        <fieldset><legend>{t.show}</legend><label><input type="checkbox" checked={onlySaved} onChange={(e) => setOnlySaved(e.target.checked)} />{t.savedOnly}</label><label><input type="checkbox" checked={onlyNew} onChange={(e) => setOnlyNew(e.target.checked)} />{t.newOnly}</label><label><input type="checkbox" checked={adm} onChange={(e) => setAdm(e.target.checked)} />{t.admissions}</label></fieldset>
+        <fieldset><legend>{t.show}</legend><label><input type="checkbox" checked={onlySaved} onChange={(e) => setOnlySaved(e.target.checked)} />{t.savedOnly}</label><label><input type="checkbox" checked={onlyNew} onChange={(e) => setOnlyNew(e.target.checked)} />{t.newOnly}</label></fieldset>
         <button className="u-clear" type="button" onClick={reset}>{t.clear}</button>
       </div>
       <div className="u-sh-f"><button type="button" className="u-done" onClick={() => { setFo(false); toList(); }}>{t.done(filtered.length)}</button></div>
