@@ -12,7 +12,7 @@ const SOURCES = ["Daily Ausaf", "Nawa-i-Waqt", "Daily Express", "Daily Aaj", "Da
 /** Sources the GitHub robots read by themselves; the rest are added from this page. */
 const AUTO = new Set(["FPSC", "KPPSC", "NTS", "ATS", "Daily Mashriq", "Daily Jang", "Daily Express", "Daily Aaj"]);
 const I = ({ d }: { d: string }) => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
-const NAV: [string, string, string][] = [["#top", "Overview", "M3 11l9-7 9 7v9H3z"], ["#add", "Add job", "M12 5v14M5 12h14"], ["#paste", "Paste many", "M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"], ["#recent", "Recently added", "M12 8v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"], ["#review", "Review queue", "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"], ["#health", "Sources", "M3 12h4l3-7 4 14 3-7h4"], ["#messages", "Messages", "M4 4h16v12H5l-1 4z"], ["#closed", "Closed jobs", "M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18zM12 7v5l3 2"], ["#tools", "Tools", "M14 7l3 3-8 8H6v-3z"]];
+const NAV: [string, string, string][] = [["#top", "Overview", "M3 11l9-7 9 7v9H3z"], ["#add", "Add job", "M12 5v14M5 12h14"], ["#paste", "Paste many", "M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"], ["#recent", "Recently added", "M12 8v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"], ["#pic", "Ad picture", "M4 5h16v14H4zM8 13l3-3 5 6"], ["#review", "Review queue", "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"], ["#health", "Sources", "M3 12h4l3-7 4 14 3-7h4"], ["#messages", "Messages", "M4 4h16v12H5l-1 4z"], ["#closed", "Closed jobs", "M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18zM12 7v5l3 2"], ["#tools", "Tools", "M14 7l3 3-8 8H6v-3z"]];
 
 export default async function Admin() {
   if (!isAdmin((await cookies()).get("rd_admin")?.value)) return (
@@ -69,6 +69,12 @@ export default async function Admin() {
       <section className="a1-card" id="recent"><h2>Recently added (last 7 days)</h2>
         <p className="nt">{perDay.length ? perDay.map((d) => `${D(d.d)}: ${String(d.n)} added (${String(d.live)} live)`).join(" · ") : "Nothing added in the last 7 days."}</p>
         {recent.map((r) => <div className="a1-q" key={String(r.id)}><b>{String(r.title)}</b><span className="nt">{String(r.src)} · Added {D(r.created_at)} · Last date {D(r.last_date)} · {String(r.status)}{r.status === "published" ? <> · <a href={"/jobs/" + String(r.slug)} target="_blank" rel="noopener noreferrer">open</a></> : null}</span></div>)}</section>
+      <section className="a1-card" id="pic"><h2>Add or replace an ad picture</h2><p className="nt">For a live job from the last 7 days: pick the job and the picture (for example the original ETEA advertisement). It shows on the job page and in WhatsApp sharing.</p>
+        <form method="post" action="/api/admin/attach" encType="multipart/form-data" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <input type="hidden" name="back" value="1" />
+          <label htmlFor="pic-slug">Job<select id="pic-slug" name="slug" required>{recent.filter((r) => r.status === "published").map((r) => <option key={String(r.id)} value={String(r.slug)}>{String(r.src)} · {String(r.title).slice(0, 70)}</option>)}</select></label>
+          <AdImageInput id="pic-adImage" label="Picture (shrinks automatically)" />
+          <button className="a1-btn" type="submit">Save picture</button></form></section>
       <section className="a1-card" id="review"><h2>Review queue ({queue.length})</h2>{queue.length === 0 && <p className="nt">Nothing to review.</p>}
         {queue.map((q) => <form key={String(q.id)} method="post" action="/api/admin/resolve" className="a1-q"><b>{String(q.title)}</b><span className="nt">{String(q.src)} · Added {D(q.created_at)} · Last date {D(q.last_date)} · {String(q.reason)} · <a href={String(q.official_url)} rel="noopener noreferrer" target="_blank">official source</a></span><input type="hidden" name="id" value={String(q.id)} />
           <div style={{ display: "flex", gap: 8 }}><button className="a1-btn" name="action" value="publish" type="submit">Publish</button><button className="a1-btn r" name="action" value="reject" type="submit">Reject</button></div></form>)}</section>

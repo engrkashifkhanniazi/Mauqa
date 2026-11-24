@@ -6,6 +6,7 @@ import { isAdmin } from "@/lib/adminAuth";
 import { saveAdImage, ensureAdImageTable, enhance } from "@/lib/adImage";
 import { hostAllowed, ALLOWED_DOMAINS } from "@/pipeline/rules";
 import { uploadCodeOk } from "@/lib/uploadCode";
+import { refreshSite } from "@/lib/refresh";
 /** e-paper sites may call this with an upload code (no cookie crosses sites) */
 const cors = (req: NextRequest): Record<string, string> => { const o = req.headers.get("origin") ?? ""; let ok = false; try { ok = hostAllowed(o) && ALLOWED_DOMAINS.length > 0; } catch {} return ok ? { "access-control-allow-origin": o, "access-control-allow-methods": "POST, OPTIONS", "access-control-allow-headers": "x-rd-upload", vary: "origin" } : {}; };
 export async function OPTIONS(req: NextRequest) { return new NextResponse(null, { status: 204, headers: cors(req) }); }
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
   const jr = rows(await db().execute(sql`select id from jobs where slug = ${slug} limit 1`))[0];
   if (!jr) return NextResponse.json({ error: "no job with that slug" }, { status: 404 });
   const file = f.get("adImage");
-  if (file instanceof File && file.size > 0) { await saveAdImage(Number(jr.id), file); return NextResponse.json({ ok: true, slug }, { headers: h }); }
+  if (file instanceof File && file.size > 0) { await saveAdImage(Number(jr.id), file); refreshSite(); if (f.get("back")) return NextResponse.redirect(new URL("/admin?picture=saved#pic", req.url), 303); return NextResponse.json({ ok: true, slug }, { headers: h }); }
   const url = String(f.get("imageUrl") ?? ""); const box = String(f.get("box") ?? "").split(",").map(Number);
   if (!hostAllowed(url)) return NextResponse.json({ error: "image host not allowed" }, { status: 400 });
   if (box.length !== 4 || box.some((n) => !(n >= 0 && n <= 1)) || box[2] <= box[0] || box[3] <= box[1]) return NextResponse.json({ error: "box must be left,top,right,bottom fractions" }, { status: 400 });

@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 
 /** Picks the saved ad picture and shrinks it on the phone first, so large photos pass the upload size limit. */
-export default function AdImageInput() {
+export default function AdImageInput({ id = "add-adImage", label = "Ad picture (optional) · drop or tap to choose, shrinks automatically" }: { id?: string; label?: string }) {
   const ref = useRef<HTMLInputElement>(null);
   const [note, setNote] = useState("");
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
@@ -17,5 +17,5 @@ export default function AdImageInput() {
       setNote(`Ready: ${(blob.size / 1024).toFixed(0)} KB`);
     } catch { setNote(f.size > 4_000_000 ? "Picture is too big; pick a smaller one." : "Picture attached."); }
   }
-  return (<label htmlFor="add-adImage">Ad picture (optional) · drop or tap to choose, shrinks automatically<input ref={ref} id="add-adImage" name="adImage" type="file" accept="image/*" onChange={onPick} style={{ display: "block", width: "100%" }} /><span className="nt">{note}</span></label>);
+  return (<label htmlFor={id}>{label}<input ref={ref} id={id} name="adImage" type="file" accept="image/*" onChange={onPick} style={{ display: "block", width: "100%" }} /><span className="nt">{note}</span></label>);
 }
