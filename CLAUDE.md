@@ -57,10 +57,9 @@ Before every push: typecheck, vitest, build, e2e, and look at screenshots on pho
 Runs ~11:05 PKT on Kashif's laptop via Claude in Chrome: reads today's Ausaf Islamabad, Ausaf Peshawar and Nawa-i-Waqt Islamabad e-papers, sends him a crop of each KP/Islamabad government job ad + a ready post-line in the paste format. It never posts; Kashif posts via admin. Ausaf is behind a Cloudflare check that usually clears by itself in ~20 s; never solve it.
 
 ## Pending for Kashif (put these in the reminder list)
-1. Optional: create the WhatsApp Channel and send the link (-> `NEXT_PUBLIC_WHATSAPP_CHANNEL`).
-2. Before applying to AdSense: buy the domain and give a real contact email. **mauqa.com is taken** (checked 24 Nov 2026). Recommended **mauqa.pk** via a PKNIC registrar (Rs 2,100/yr, 2 years = Rs 4,200); its availability is not checked yet (PKNIC lookup needs Kashif to allow the site in Claude in Chrome, or he checks it himself).
+1. Before applying to AdSense: buy the domain and give a real contact email. **mauqa.com is taken** (checked 24 Nov 2026). Recommended **mauqa.pk** via a PKNIC registrar (Rs 2,100/yr, 2 years = Rs 4,200); its availability is not checked yet (PKNIC lookup needs Kashif to allow the site in Claude in Chrome, or he checks it himself).
 
-Done 24 Nov 2026: Search Console property `https://mauqa.vercel.app/` verified by HTML tag (`metadata.verification.google` in `src/app/layout.tsx`; never remove it) and `/sitemap.xml` submitted (Success). Vercel Web Analytics works (4 visitors / 35 page views in the week to 24 Nov). The daily scheduled task exists on this account and runs at 11:05 PKT; pushes to the renamed repo work.
+Done 24 Nov 2026: Search Console property `https://mauqa.vercel.app/` verified by HTML tag (`metadata.verification.google` in `src/app/layout.tsx`; never remove it) and `/sitemap.xml` submitted (Success). Vercel Web Analytics works (4 visitors / 35 page views in the week to 24 Nov). The daily scheduled task exists on this account and runs at 11:05 PKT; pushes to the renamed repo work. WhatsApp Channel https://whatsapp.com/channel/0029VbDgJDj6hENwWW0DCS31 set as `NEXT_PUBLIC_WHATSAPP_CHANNEL` (Follow banner on homepage EN/UR and job pages).
 
 ## When the domain arrives (checklist)
 Add domain in Vercel → set `NEXT_PUBLIC_SITE_URL` → redirect `mauqa.vercel.app` to the domain (extend the host redirect in `next.config.ts`) → update tests/live config, README, scheduled-task prompt → add the domain in Search Console → resubmit sitemap.
