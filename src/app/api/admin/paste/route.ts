@@ -1,3 +1,4 @@
+import { refreshSite } from "@/lib/refresh";
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { ensureApplyHow } from "@/lib/applyHow";
@@ -39,7 +40,8 @@ export async function POST(req: NextRequest) {
         values (${slug}, ${c.title}, ${c.department ?? null}, ${Number(sr.id)}, ${c.city ? normCity(c.city) : null}, ${normProvince("", c.city ?? "", c.department ?? "", source)}, ${c.education ?? null}, ${c.bps ?? null}, ${c.vacancies ?? null}, ${c.lastDate}, 'published', ${officialUrl}, ${null}, ${c.applyHow ?? null}, ${slug + "|" + c.lastDate}, ${sha256("paste|" + slug)}) on conflict (slug) do nothing`);
       ok++;
     }
-    return page(`<h2>Done</h2><p>${ok} published (unverified), ${refused} refused by the rules engine.</p><p><a href=/>See site</a> · <a href=/admin>Admin</a></p>`);
+refreshSite();
+      return page(`<h2>Done</h2><p>${ok} published (unverified), ${refused} refused by the rules engine.</p><p><a href=/>See site</a> · <a href=/admin>Admin</a></p>`);
   }
   const cands = parsePaste(String(f.get("text") ?? "")).slice(0, 100);
   if (!cands.length) return page("<p>No lines with a closing date were found. Each job needs its date on the same line. <a href=/admin>Back</a></p>");

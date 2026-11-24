@@ -1,3 +1,4 @@
+import { refreshSite } from "@/lib/refresh";
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
@@ -9,5 +10,6 @@ export async function POST(req: NextRequest) {
   // Manual publish never sets verified_at: only code-confirmed fields may be "Verified".
   await db().execute(sql`update jobs set status = ${action === "publish" ? "published" : "rejected"}, updated_at = now() where id = (select job_id from review_queue where id = ${id})`);
   await db().execute(sql`update review_queue set resolved_by = 'admin', resolved_at = now() where id = ${id}`);
+  refreshSite();
   return NextResponse.redirect(new URL("/admin", req.url), 303);
 }

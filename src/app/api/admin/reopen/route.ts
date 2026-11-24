@@ -1,3 +1,4 @@
+import { refreshSite } from "@/lib/refresh";
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
@@ -9,5 +10,6 @@ export async function POST(req: NextRequest) {
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Karachi" });
   if (!Number.isInteger(id) || !/^\d{4}-\d{2}-\d{2}$/.test(d) || d < today) return NextResponse.json({ error: "Pick a new last date from today onwards." }, { status: 400 });
   await db().execute(sql`update jobs set status = 'published', last_date = ${d}, updated_at = now() where id = ${id} and status = 'closed'`);
+  refreshSite();
   return NextResponse.redirect(new URL("/admin?reopened=1#closed", req.url), 303);
 }

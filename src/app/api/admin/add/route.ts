@@ -1,3 +1,4 @@
+import { refreshSite } from "@/lib/refresh";
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
@@ -48,5 +49,6 @@ export async function POST(req: NextRequest) {
     const jr = rows(await db().execute(sql`select id from jobs where slug = ${slug} limit 1`))[0];
     if (jr) await saveAdImage(Number(jr.id), pic);
   }
+  refreshSite();
   return NextResponse.redirect(new URL("/admin?added=1", req.url), 303);
 }

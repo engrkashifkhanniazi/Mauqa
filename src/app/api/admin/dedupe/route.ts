@@ -1,3 +1,4 @@
+import { refreshSite } from "@/lib/refresh";
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
@@ -23,5 +24,6 @@ export async function POST(req: NextRequest) {
     }
   }
   for (const id of hide) await db().execute(sql`update jobs set status = 'rejected', updated_at = now() where id = ${id}`);
+  refreshSite();
   return new NextResponse(`<!doctype html><meta charset="utf-8"><title>Duplicates</title><body style="font-family:sans-serif;max-width:600px;margin:40px auto"><h2>Done</h2><p>${hide.length} duplicate listing(s) hidden (not deleted).</p><p><a href="/admin">Admin</a></p>`, { headers: { "content-type": "text/html; charset=utf-8" } });
 }
