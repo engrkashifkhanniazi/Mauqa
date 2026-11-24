@@ -40,7 +40,7 @@ Before every push: typecheck, vitest, build, e2e, and look at screenshots on pho
 - `src/lib/site.ts`: all site settings from env (below).
 - Admin (`src/app/admin/page.tsx`): add job by hand (incl. "How to apply, from the ad" box and ad picture), paste many (`title;;department;;city;;vacancies;;bps;;education;;YYYY-MM-DD;;how to apply` - last part optional), review queue, Contact messages, Closed jobs (reopen with new date), tools.
 - Pages: `/about`, `/contact` (form → `contact_messages` table, shown in admin), `/privacy`, `/terms`, `/disclaimer`, `/ads.txt` (404 until AdSense id set), `manifest.webmanifest` + `public/sw.js` (installable app).
-- Workers/workflows: `workers/run.ts` (FPSC, KPPSC, NTS, ATS… every 3 h, `ingest.yml`), `workers/newspapers.ts` (Mashriq, Jang Pindi, Express ISB, Aaj Peshawar; 06:30/08:30/10:30 PKT, needs `ANTHROPIC_API_KEY`, budget cap `CLAUDE_MONTHLY_BUDGET_USD`), `workers/expire.ts` (nightly ~01:30 PKT: past-date jobs → `closed`, never deleted). See `docs/MORNING_RUN.md`.
+- Workers/workflows: `workers/run.ts` (FPSC, KPPSC, NTS, ATS… every 3 h, `ingest.yml`), `workers/newspapers.ts` (Mashriq, Jang Pindi, Express ISB, Aaj Peshawar; 09:30/11:30 PKT (GitHub schedules often run hours late), needs `ANTHROPIC_API_KEY`, budget cap `CLAUDE_MONTHLY_BUDGET_USD`), `workers/expire.ts` (nightly ~01:30 PKT: past-date jobs → `closed`, never deleted). See `docs/MORNING_RUN.md`.
 - Runtime-created columns/tables (also in `drizzle/`): `jobs.apply_how`, `job_images`, `contact_messages`.
 
 ## Rules that must stay true
@@ -60,10 +60,15 @@ Never ingest or show scholarships, admissions, entrance/aptitude tests (NAT, GAT
 ## Environment settings (Vercel → redeploy)
 `NEXT_PUBLIC_SITE_URL` (set when the custom domain arrives), `NEXT_PUBLIC_ADSENSE_CLIENT` (ca-pub-…; turns on script, meta tag, ads.txt), `NEXT_PUBLIC_AD_SLOT_LIST_FEED`, `NEXT_PUBLIC_AD_SLOT_JOB_MID`, `NEXT_PUBLIC_AD_SLOT_JOB_END`, `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_WHATSAPP_CHANNEL`, plus server secrets `DATABASE_URL`, `ADMIN_PASSWORD`, `CRON_SECRET`, `ANTHROPIC_API_KEY`, `RESEND_API_KEY` (alert emails; not set yet, so alerts are stored but not emailed).
 
-## Daily routine (scheduled task "Mauqa: Ausaf aur Nawa-i-Waqt ke ads")
-Runs ~11:05 PKT on Kashif's laptop via Claude in Chrome: reads today's Ausaf Islamabad, Ausaf Peshawar and Nawa-i-Waqt Islamabad e-papers, sends him a crop of each KP/Islamabad government job ad + a ready post-line in the paste format. It never posts; Kashif posts via admin. Ausaf is behind a Cloudflare check that usually clears by itself in ~20 s; never solve it.
+## Daily laptop routines (Claude in Chrome) and automatic posting (decided 24 Nov 2026)
+Kashif wants everything posted automatically, no admin step.
+- `/api/intake` (`src/app/api/intake/route.ts`, `src/lib/intake.ts`): POST multipart `source`, `officialUrl`, `line` (paste format), optional `adImage`, `dry=1`; header `x-mauqa-intake` = env `INTAKE_TOKEN`; CORS for allowed e-paper/agency hosts. Runs `evaluate()` (scope, admissions, past dates), duplicate check (`sameAdKey` in `dedupe_key`, or same title+date), publishes, saves picture. Never "Verified".
+- Scheduled task "Mauqa: Ausaf aur Nawa-i-Waqt ke ads": 11:05 PKT, Ausaf Islamabad (station_id=1), Ausaf Peshawar (station_id=3), Nawa-i-Waqt Islamabad; crops each ad in the e-paper tab (canvas) and posts it to `/api/intake`.
+- Scheduled task "Mauqa: ETEA, OTS, PTS, NJP ki jobs": 11:20 and 15:20 PKT, ETEA/OTS/PTS/NJP (+ KPPSC/FPSC as a cross-check), posts to `/api/intake`.
+- Both prompts contain the intake token; if `INTAKE_TOKEN` is changed in Vercel, update both prompts. Never solve Cloudflare/CAPTCHA.
 
 ## Pending for Kashif (put these in the reminder list)
+0. Add `INTAKE_TOKEN` in Vercel (Production, value = the token in the two scheduled-task prompts) and redeploy; until then `/api/intake` answers 401 and the laptop runs cannot post.
 1. Before applying to AdSense: buy the domain and give a real contact email. **mauqa.com is taken** (checked 24 Nov 2026). Recommended **mauqa.pk** via a PKNIC registrar (Rs 2,100/yr, 2 years = Rs 4,200); its availability is not checked yet (PKNIC lookup needs Kashif to allow the site in Claude in Chrome, or he checks it himself).
 
 Done 24 Nov 2026: Search Console property `https://mauqa.vercel.app/` verified by HTML tag (`metadata.verification.google` in `src/app/layout.tsx`; never remove it) and `/sitemap.xml` submitted (Success). Vercel Web Analytics works (4 visitors / 35 page views in the week to 24 Nov). The daily scheduled task exists on this account and runs at 11:05 PKT; pushes to the renamed repo work. WhatsApp Channel https://whatsapp.com/channel/0029VbDgJDj6hENwWW0DCS31 set as `NEXT_PUBLIC_WHATSAPP_CHANNEL` (Follow banner on homepage EN/UR and job pages).

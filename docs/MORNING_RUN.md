@@ -9,7 +9,7 @@ Scope: Khyber Pakhtunkhwa + Islamabad (incl. federal). Other provinces are skipp
 | KPPSC (PDF ads) | yes | ingest.yml |
 | NTS | no | ingest.yml |
 | ATS | no | ingest.yml |
-| Daily Mashriq (Peshawar) | yes | newspapers.yml, 06:30 / 08:30 / 10:30 PKT |
+| Daily Mashriq (Peshawar) | yes | newspapers.yml, 09:30 / 11:30 PKT |
 | Daily Jang (Pindi) | yes | newspapers.yml |
 | Daily Express (Islamabad edition) | yes | newspapers.yml |
 | Daily Aaj (Peshawar edition) | yes | newspapers.yml |
