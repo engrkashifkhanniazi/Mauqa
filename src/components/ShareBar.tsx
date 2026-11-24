@@ -1,11 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
+import { WA_CHANNEL } from "@/lib/site";
 /** WhatsApp share (ready-made message), native share where available, copy link.
  *  With `pic` (URL of the ad picture): on phones that can share files, the same "Share on WhatsApp" button sends the picture together
  *  with the message; where that is not possible (desktop) it sends the message only and a "Save picture" link is shown. */
 export default function ShareBar({ url, title, dept, last, pic }: { url: string; title: string; dept: string; last: string; pic?: string }) {
   const [copied, setCopied] = useState(false); const [can, setCan] = useState(false);
   const [file, setFile] = useState<File | null>(null); const [files, setFiles] = useState(false);
+  const [ur, setUr] = useState(false); // the message follows the language of the page (Urdu page = Urdu message)
+  useEffect(() => {
+    const el = document.documentElement; const sync = () => setUr(el.lang === "ur"); sync();
+    const mo = new MutationObserver(sync); mo.observe(el, { attributes: true, attributeFilter: ["lang"] });
+    return () => mo.disconnect();
+  }, []);
   useEffect(() => {
     setCan(typeof navigator !== "undefined" && "share" in navigator);
     if (!pic || typeof navigator === "undefined" || typeof navigator.canShare !== "function") return;
@@ -16,7 +23,12 @@ export default function ShareBar({ url, title, dept, last, pic }: { url: string;
     fetch(pic).then((r) => (r.ok ? r.blob() : Promise.reject())).then((b) => { if (!dead) setFile(new File([b], "mauqa-job-ad.jpg", { type: b.type || "image/jpeg" })); }).catch(() => {});
     return () => { dead = true; };
   }, [pic]);
-  const msg = `*${title}*${dept ? `\n${dept}` : ""}${last ? `\nLast date: ${last}` : ""}\n\nDetails and advertisement:\n${url}`;
+  // Picture + short caption + link + channel follow line (the picture is attached by the phone's share sheet, see above).
+  const msg = [
+    [`*${title}*`, dept, last ? (ur ? `آخری تاریخ: ${last}` : `Last date: ${last}`) : ""].filter(Boolean).join("\n"),
+    [ur ? "تنخواہ، اپلائی کرنے کا طریقہ اور ضروری کاغذات:" : "Pay, how to apply and documents:", url].join("\n"),
+    WA_CHANNEL ? [ur ? "مزید نوکریوں کے لیے ہمارا واٹس ایپ چینل فالو کریں 👇" : "For more jobs, follow our WhatsApp channel 👇", WA_CHANNEL].join("\n") : "",
+  ].filter(Boolean).join("\n\n");
   const native = async () => { try { await (file ? navigator.share({ files: [file], text: msg }) : navigator.share({ title, text: msg.replace(/\n+.*$/, ""), url })); } catch {} };
   const wa = async (e: React.MouseEvent) => { if (!file) return; e.preventDefault(); try { await navigator.share({ files: [file], text: msg }); } catch (err) { if ((err as Error)?.name !== "AbortError") window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank", "noopener"); } };
   const copy = async () => { try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch {} };
