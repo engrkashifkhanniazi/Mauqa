@@ -24,7 +24,7 @@ const T = {
     region: "Region", all: "All", kp: "Khyber Pakhtunkhwa", fed: "Islamabad / Federal", city: "City / district", anyCity: "All cities", edu: "Qualification", pay: "Pay scale", any: "Any", noBps: "Contract / lump-sum", closing: "Closing", urgent: "Urgent (3 days)", within10: "Within 10 days", within21: "Within 3 weeks", source: "Source", show: "Show", savedOnly: "Saved jobs only", newOnly: "New in last 2 days",
     eduL: { "": "Any qualification", matric: "Matric / literate", inter: "Intermediate / DAE", bachelor: "Bachelor (14–16 yrs)", master: "Master / MPhil", medical: "Medical / specialised" } as Record<Edu, string>,
     chips: ["All open", "Closing ≤ 3 days", "KP", "Islamabad / Federal", "BPS 17+"], filters: "Filters", done: (n: number) => `Show ${n} matching jobs`, clear: "Clear all", open: "open jobs", sort: "Sort",
-    newest: "Newest first", soonest: "Closing soonest", most: "Most vacancies", highest: "Highest BPS", today: "Added today", yday: "Added yesterday", more: (n: number) => `Show 15 more (${n} remaining)`, isNew: "New",
+    newest: "Newest first", soonest: "Closing soonest", most: "Most vacancies", highest: "Highest BPS", today: "Added today", yday: "Added yesterday", addedOn: "Added", more: (n: number) => `Show 15 more (${n} remaining)`, isNew: "New",
     last: "Last date", view: "View", none: "No jobs match these filters.", posts: "posts", closesToday: "Closes today", left: (n: number) => n < 0 ? "Closed" : n === 0 ? "Closes today" : n === 1 ? "1 day left" : `${n} days left`,
     alertH: "Never miss a closing date", alertP: "Pick your region and qualification; we email you when a matching advertisement is published.", notify: "Notify me", sample: "Sample", foot: "Always confirm details on the official advertisement.",
     ad: "Detail and advertisement", basic: "Basic pay (BPS-2026)", f: ["Last date", "Time left", "Pay scale", "Vacancies", "Education", "Age", "Location", "Source"], disc: "Mauqa links to the official source and does not accept applications.", toggle: "اردو",
@@ -33,7 +33,7 @@ const T = {
     region: "علاقہ", all: "سب", kp: "خیبر پختونخوا", fed: "اسلام آباد / وفاقی", city: "شہر / ضلع", anyCity: "تمام شہر", edu: "تعلیم", pay: "سکیل", any: "کوئی بھی", noBps: "کنٹریکٹ / یکمشت", closing: "آخری تاریخ", urgent: "فوری (3 دن)", within10: "دس دن کے اندر", within21: "تین ہفتوں کے اندر", source: "ذریعہ", show: "دکھائیں", savedOnly: "صرف محفوظ نوکریاں", newOnly: "پچھلے دو دن کی نئی",
     eduL: { "": "کوئی بھی تعلیم", matric: "میٹرک / خواندہ", inter: "انٹرمیڈیٹ / ڈی اے ای", bachelor: "بیچلر (14 تا 16 سال)", master: "ماسٹر / ایم فل", medical: "میڈیکل / خصوصی" } as Record<Edu, string>,
     chips: ["تمام کھلی", "3 دن میں ختم", "خیبر پختونخوا", "اسلام آباد / وفاقی", "سکیل 17+"], filters: "فلٹر", done: (n: number) => `${n} نوکریاں دکھائیں`, clear: "سب صاف کریں", open: "نوکریاں موجود ہیں", sort: "ترتیب",
-    newest: "نئی پہلے", soonest: "جلد ختم ہونے والی پہلے", most: "زیادہ اسامیاں پہلے", highest: "بڑا سکیل پہلے", today: "آج شامل ہوئیں", yday: "کل شامل ہوئیں", more: (n: number) => `مزید 15 دکھائیں (${n} باقی)`, isNew: "نئی",
+    newest: "نئی پہلے", soonest: "جلد ختم ہونے والی پہلے", most: "زیادہ اسامیاں پہلے", highest: "بڑا سکیل پہلے", today: "آج شامل ہوئیں", yday: "کل شامل ہوئیں", addedOn: "شامل کیا گیا", more: (n: number) => `مزید 15 دکھائیں (${n} باقی)`, isNew: "نئی",
     last: "آخری تاریخ", view: "تفصیل", none: "ان فلٹرز کے مطابق کوئی نوکری نہیں ملی۔", posts: "اسامیاں", closesToday: "آج آخری دن", left: (n: number) => n < 0 ? "بند ہو چکی" : n === 0 ? "آج آخری دن" : `${n} دن باقی`,
     alertH: "کوئی آخری تاریخ نہ چھوٹے", alertP: "اپنا علاقہ اور تعلیم چنیں؛ مطابقت رکھنے والا اشتہار آنے پر ہم ای میل کریں گے۔", notify: "مجھے بتائیں", sample: "نمونہ", foot: "درخواست سے پہلے اصل اشتہار ضرور دیکھیں۔",
     ad: "تفصیل اور اشتہار", basic: "بنیادی تنخواہ (BPS-2026)", f: ["آخری تاریخ", "باقی وقت", "سکیل", "اسامیاں", "تعلیم", "عمر", "جگہ", "ذریعہ"], disc: "موقع صرف اصل ذریعے کا لنک دیتا ہے، درخواستیں قبول نہیں کرتا۔", toggle: "English",
@@ -186,7 +186,7 @@ export default function Browser({ jobs, sample, lang: pageLang = "en" }: { jobs:
             <div className={ur ? "u3-grid" : "u2-feed"}>{page.length ? page.map((j, i) => (<Fragment key={j.id}>{head(j, i)}
               {!ur ? (
                 <article className="u2-row">
-                  <div className="u2-tx"><span className="u2-src">{isNew(j) && <b className="nw">{t.isNew}</b>}{kind(j)} · {j.source}</span>
+                  <div className="u2-tx"><span className="u2-src">{isNew(j) && <b className="nw">{t.isNew}</b>}{kind(j)} · {j.source}{j.added ? ` · ${t.addedOn} ${fd(j.added, ur)}` : ""}</span>
                     <h3><button type="button" onClick={() => setOpen(j)}>{j.title}</button></h3><p>{[j.department, j.city].filter(Boolean).join(" · ")}</p>
                     <div className="u2-tags">{j.bps != null && <span>BPS-{j.bps}</span>}{j.vacancies != null && <span>{j.vacancies} {t.posts}</span>}{j.education && <span>{j.education}</span>}</div></div>
                   <div className="u2-side"><div className="u2-date">{dateBox(j)}</div>
@@ -194,7 +194,7 @@ export default function Browser({ jobs, sample, lang: pageLang = "en" }: { jobs:
                 </article>
               ) : (
                 <article className="u3-card">
-                  <div className="u3-cap"><span>{isNew(j) && <b className="nw">{t.isNew}</b>}{kind(j)} · <bdi dir="ltr">{j.source}</bdi></span><Save j={j} /></div>
+                  <div className="u3-cap"><span>{isNew(j) && <b className="nw">{t.isNew}</b>}{kind(j)} · <bdi dir="ltr">{j.source}</bdi>{j.added ? <> · {t.addedOn} <bdi dir="ltr">{fd(j.added, ur)}</bdi></> : null}</span><Save j={j} /></div>
                   <h3 dir="auto"><button type="button" onClick={() => setOpen(j)}>{j.title}</button></h3>
                   <p dir="auto">{j.department}</p>
                   <div className="u3-tags">{j.city && <span dir="auto">{j.city}</span>}{j.bps != null && <span dir="ltr">BPS-{j.bps}</span>}{j.education && <span dir="auto">{j.education}</span>}</div>
