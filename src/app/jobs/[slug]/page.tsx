@@ -68,7 +68,7 @@ export default async function JobPage({ params }: P) {
         <h1 dir="ltr">{j.title}</h1>
         {j.department && <p className="jp-dept" dir="ltr">{j.department}</p>}
         <dl className="jp-facts">{facts.filter(([, v]) => v).map(([[en, ur], v]) => <div key={en}><dt><L en={en} ur={ur} /></dt><dd><bdi dir="ltr">{v}</bdi></dd></div>)}</dl>
-        <div className="jp-acts"><SaveJob id={j.id} />{!closed && <ShareBar url={url} title={j.title} dept={j.department} last={fd(j.lastDate)} />}</div>
+        <div className="jp-acts"><SaveJob id={j.id} />{!closed && <ShareBar url={url} title={j.title} dept={j.department} last={fd(j.lastDate)} pic={pic ? `/api/ad/${j.slug}` : undefined} />}</div>
       </article>
 
       <section className="jp-card">

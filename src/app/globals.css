@@ -223,7 +223,7 @@ html[lang="ur"] .jp-ad h2,html[lang="ur"] .jp-logo{font-family:"Jameel Noori Nas
 .jp-acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-top:6px;border-top:1px solid #E6EEEA}
 .sh{display:flex;flex-wrap:wrap;gap:8px}
 .sh-wa{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:12px;background:#1FA855;color:#fff;font-weight:700;text-decoration:none}
-.sh-wa:hover{background:#178a45}
+.sh-wa:hover{background:#178a45}.sh-b:disabled{opacity:.6;cursor:wait}
 .sh-b,.sv-j{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid #CFDDD7;background:#fff;color:#0F1F1A;font-weight:600;cursor:pointer}
 .sv-j[aria-pressed="true"]{background:#FFF6DB;border-color:#E9C25B;color:#7A5300}
 .inst{min-height:38px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:#2FC79A;color:#04251C;font-weight:700;cursor:pointer}
