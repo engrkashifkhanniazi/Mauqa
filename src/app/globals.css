@@ -230,7 +230,7 @@ html[lang="ur"] .jp-ad h2,html[lang="ur"] .jp-logo{font-family:"Jameel Noori Nas
 .u2 .inst-n{border-color:#0E6B4D;background:#0E6B4D;color:#fff}.u3 .inst-n{background:#1E3A34;color:#fff;border-color:#1E3A34}
 .jp-nr{display:flex;align-items:center;gap:12px}
 .fol{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;padding:16px 20px;border-radius:16px;background:#E7F8EE;border:1px solid #BFE8CF;color:#0F5132;font-weight:700;text-decoration:none}
-.fol b{font-size:24px;line-height:1}.fol:hover{background:#DAF3E4}
+.fol-i{flex:none;color:#25D366}.fol-t{flex:1;min-width:0}.fol b{font-size:24px;line-height:1}.fol:hover{background:#DAF3E4}
 .nw{display:inline-block;margin-inline-end:6px;padding:1px 8px;border-radius:999px;background:#F2C14E;color:#1A1500;font-size:11px;font-weight:800;letter-spacing:.03em;vertical-align:1px}
 .fl{display:flex;flex-wrap:wrap;gap:6px 18px;margin-bottom:10px}.fl a{color:inherit;font-weight:600}.fl-c{margin-inline-start:auto;opacity:.8}
 .jp-main{display:flex;flex-direction:column;gap:16px}
@@ -296,7 +296,7 @@ input[type=search]::-webkit-search-cancel-button{display:none}
 .u3-d{display:flex;flex-direction:column;gap:2px}.u3-d small{font-size:14px;color:#6A6253}.u3-d b{font-family:"Plus Jakarta Sans",sans-serif;font-size:14px}.u3-d em{font-style:normal;font-size:14px;color:#6A6253}
 .u3-d em.today,.u3-d em.soon{align-self:flex-start}
 .u-alert select{min-height:48px;border-radius:12px;border:0;padding:0 10px;color:#0F1F1A;background:#fff;font:inherit}
-.u-alert .fol{flex-basis:100%;margin-top:0;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#fff}
+.u-alert .fol .fol-i{color:#25D366}.u-alert .fol{flex-basis:100%;margin-top:0;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#fff}
 .u-tabs{display:none}
 @media (max-width:767px){
   .u-wrap{padding:0 16px}
