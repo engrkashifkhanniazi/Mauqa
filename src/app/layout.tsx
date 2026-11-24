@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   openGraph: { title: "Mauqa", description: "Government jobs in KP and Islamabad, checked daily, with the official advertisement.", type: "website", siteName: "Mauqa", locale: "en_PK" },
   twitter: { card: "summary_large_image" },
   appleWebApp: { capable: true, title: "Mauqa", statusBarStyle: "black-translucent" },
+  verification: { google: "p3yPkxGE_XjvMMVX6oZJ_otPkzmB029eBEswGmO_gYc" },
   other: ADSENSE_CLIENT ? { "google-adsense-account": ADSENSE_CLIENT } : {},
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#0A2620" };
