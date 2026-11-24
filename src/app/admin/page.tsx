@@ -12,7 +12,7 @@ const SOURCES = ["Daily Ausaf", "Nawa-i-Waqt", "Daily Express", "Daily Aaj", "Da
 /** Sources the GitHub robots read by themselves; the rest are added from this page. */
 const AUTO = new Set(["FPSC", "KPPSC", "NTS", "ATS", "Daily Mashriq", "Daily Jang", "Daily Express", "Daily Aaj"]);
 const I = ({ d }: { d: string }) => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
-const NAV: [string, string, string][] = [["#top", "Overview", "M3 11l9-7 9 7v9H3z"], ["#add", "Add job", "M12 5v14M5 12h14"], ["#paste", "Paste many", "M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"], ["#review", "Review queue", "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"], ["#health", "Sources", "M3 12h4l3-7 4 14 3-7h4"], ["#messages", "Messages", "M4 4h16v12H5l-1 4z"], ["#closed", "Closed jobs", "M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18zM12 7v5l3 2"], ["#tools", "Tools", "M14 7l3 3-8 8H6v-3z"]];
+const NAV: [string, string, string][] = [["#top", "Overview", "M3 11l9-7 9 7v9H3z"], ["#add", "Add job", "M12 5v14M5 12h14"], ["#paste", "Paste many", "M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"], ["#recent", "Recently added", "M12 8v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"], ["#review", "Review queue", "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"], ["#health", "Sources", "M3 12h4l3-7 4 14 3-7h4"], ["#messages", "Messages", "M4 4h16v12H5l-1 4z"], ["#closed", "Closed jobs", "M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18zM12 7v5l3 2"], ["#tools", "Tools", "M14 7l3 3-8 8H6v-3z"]];
 
 export default async function Admin() {
   if (!isAdmin((await cookies()).get("rd_admin")?.value)) return (
@@ -22,17 +22,20 @@ export default async function Admin() {
       <button className="a1-btn" type="submit">Sign in</button></form></main>);
   if (!hasDb()) return <main className="a1" dir="ltr" lang="en"><div className="a1-main"><h1>Admin</h1><p>DATABASE_URL is not set.</p></div></main>;
   await ensureContact().catch(() => {});
-  const [health, queue, spend, kpi, closed, msgs] = await Promise.all([
+  const [health, queue, spend, kpi, closed, msgs, recent, perDay] = await Promise.all([
     rows(sql`select s.key, s.last_status, s.last_checked_at, (select items_seen from ingest_runs r where r.source_id = s.id order by r.id desc limit 1) as last_seen from sources s order by s.key`),
-    rows(sql`select q.id, q.reason, j.title, j.official_url from review_queue q join jobs j on j.id = q.job_id where q.resolved_at is null order by q.id limit 100`),
+    rows(sql`select q.id, q.reason, j.title, j.department, j.last_date, j.created_at, s.key as src, j.official_url from review_queue q join jobs j on j.id = q.job_id join sources s on s.id = j.source_id where q.resolved_at is null order by q.id limit 100`),
     rows(sql`select coalesce(sum(cost_usd),0)::float as usd, count(*)::int as calls from ai_calls where created_at >= date_trunc('month', now())`),
     rows(sql`select (select count(*)::int from jobs where status='published' and (last_date is null or last_date >= current_date)) as live,
       (select count(*)::int from jobs where created_at >= current_date) as today,
       (select count(*)::int from jobs where status='published' and last_date between current_date and current_date + 3) as closing`),
     rows(sql`select j.id, j.title, j.department, j.slug, j.last_date, s.key from jobs j join sources s on s.id = j.source_id where j.status = 'closed' and j.last_date >= current_date - 90 order by j.last_date desc limit 60`),
-    rows(sql`select id, name, email, topic, page_url, message, created_at from contact_messages order by id desc limit 30`).catch(() => [])]);
+    rows(sql`select id, name, email, topic, page_url, message, created_at from contact_messages order by id desc limit 30`).catch(() => []),
+    rows(sql`select j.id, j.title, j.department, j.status, j.slug, j.last_date, j.created_at, s.key as src from jobs j join sources s on s.id = j.source_id where j.created_at >= now() - interval '7 days' order by j.created_at desc limit 80`),
+    rows(sql`select (j.created_at at time zone 'Asia/Karachi')::date as d, count(*)::int as n, count(*) filter (where j.status = 'published')::int as live from jobs j where j.created_at >= now() - interval '7 days' group by 1 order by 1 desc`)]);
   const cap = Number(process.env.CLAUDE_MONTHLY_BUDGET_USD || 8); const usd = Number(spend[0]?.usd ?? 0);
   const k = kpi[0] ?? {};
+  const D = (v: unknown) => v ? new Date(String(v)).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Karachi" }) : "no date";
   const hmap = new Map(health.map((h) => [String(h.key), h]));
   const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Karachi" });
   return (<div className="a1" dir="ltr" lang="en">
@@ -63,8 +66,11 @@ export default async function Admin() {
             <label htmlFor="p-url">Official page link *<input id="p-url" name="officialUrl" type="url" required /></label></div>
           <label htmlFor="p-text">Lines *<textarea id="p-text" name="text" required rows={7} /></label>
           <button className="a1-btn" type="submit">Preview</button></form></section>
+      <section className="a1-card" id="recent"><h2>Recently added (last 7 days)</h2>
+        <p className="nt">{perDay.length ? perDay.map((d) => `${D(d.d)}: ${String(d.n)} added (${String(d.live)} live)`).join(" · ") : "Nothing added in the last 7 days."}</p>
+        {recent.map((r) => <div className="a1-q" key={String(r.id)}><b>{String(r.title)}</b><span className="nt">{String(r.src)} · Added {D(r.created_at)} · Last date {D(r.last_date)} · {String(r.status)}{r.status === "published" ? <> · <a href={"/jobs/" + String(r.slug)} target="_blank" rel="noopener noreferrer">open</a></> : null}</span></div>)}</section>
       <section className="a1-card" id="review"><h2>Review queue ({queue.length})</h2>{queue.length === 0 && <p className="nt">Nothing to review.</p>}
-        {queue.map((q) => <form key={String(q.id)} method="post" action="/api/admin/resolve" className="a1-q"><b>{String(q.title)}</b><span className="nt">{String(q.reason)} · <a href={String(q.official_url)} rel="noopener noreferrer" target="_blank">official source</a></span><input type="hidden" name="id" value={String(q.id)} />
+        {queue.map((q) => <form key={String(q.id)} method="post" action="/api/admin/resolve" className="a1-q"><b>{String(q.title)}</b><span className="nt">{String(q.src)} · Added {D(q.created_at)} · Last date {D(q.last_date)} · {String(q.reason)} · <a href={String(q.official_url)} rel="noopener noreferrer" target="_blank">official source</a></span><input type="hidden" name="id" value={String(q.id)} />
           <div style={{ display: "flex", gap: 8 }}><button className="a1-btn" name="action" value="publish" type="submit">Publish</button><button className="a1-btn r" name="action" value="reject" type="submit">Reject</button></div></form>)}</section>
       <section className="a1-card" id="tools"><h2>Keep to Khyber Pakhtunkhwa and Islamabad</h2><p className="nt">Hides live listings that name another province. Nothing is deleted.</p>
         <form method="post" action="/api/admin/scope-clean"><button className="a1-btn o" type="submit">Hide other-province listings</button></form>
