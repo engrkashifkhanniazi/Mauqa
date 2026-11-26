@@ -71,6 +71,7 @@ Kashif wants everything posted automatically, no admin step.
 - `/api/intake` (`src/app/api/intake/route.ts`, `src/lib/intake.ts`): POST multipart `source`, `officialUrl`, `line` (paste format), optional `adImage`, `dry=1`; header `x-mauqa-intake` = env `INTAKE_TOKEN`; CORS for allowed e-paper/agency hosts. Runs `evaluate()` (scope, admissions, past dates), duplicate check (`sameAdKey` in `dedupe_key`, or same title+date), publishes, saves picture. Never "Verified".
 - Scheduled task "Mauqa: Ausaf aur Nawa-i-Waqt ke ads": 11:05 PKT, Ausaf Islamabad (station_id=1), Ausaf Peshawar (station_id=3), Nawa-i-Waqt Islamabad; crops each ad in the e-paper tab (canvas) and posts it to `/api/intake`.
 - Scheduled task "Mauqa: ETEA, OTS, PTS, NJP ki jobs": 11:20 and 15:20 PKT, ETEA/OTS/PTS/NJP (+ KPPSC/FPSC as a cross-check), posts to `/api/intake`.
+- Cloud scheduled task "Mauqa: akhbaar aur agencies waqt par chalao (GitHub)" (created 26 Nov 2026, no laptop needed): ~09:30 and ~11:30 PKT it starts `newspapers.yml` and `ingest.yml` via workflow_dispatch, because GitHub's own cron runs hours late. Notifies Kashif only if a start fails.
 - Both prompts contain the intake token; if `INTAKE_TOKEN` is changed in Vercel, update both prompts. Never solve Cloudflare/CAPTCHA.
 
 ## Pending for Kashif (put these in the reminder list)
