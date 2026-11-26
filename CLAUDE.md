@@ -43,6 +43,12 @@ Before every push: typecheck, vitest, build, e2e, and look at screenshots on pho
 - Workers/workflows: `workers/run.ts` (FPSC, KPPSC, NTS, ATS… every 3 h, `ingest.yml`), `workers/newspapers.ts` (Mashriq, Jang Pindi, Express ISB, Aaj Peshawar; 09:30/11:30 PKT (GitHub schedules often run hours late), needs `ANTHROPIC_API_KEY`, budget cap `CLAUDE_MONTHLY_BUDGET_USD`), `workers/expire.ts` (nightly ~01:30 PKT: past-date jobs → `closed`, never deleted). See `docs/MORNING_RUN.md`.
 - Runtime-created columns/tables (also in `drizzle/`): `jobs.apply_how`, `job_images`, `contact_messages`.
 
+## Newspaper reading (fixed 26 Nov 2026)
+- `pageHasJobAds()` checks each page as two full-resolution halves; any doubt = yes (the old whole-page check said "no" for every page on 25 Nov). Pages are marked `raw_items.kind='page3'`; older marks are read again once.
+- `extractPageAds(page, editionYmd)`: Haiku on 2x2 tiles; an unclear ad (confidence < 0.85 or no date) gets a second read of its own cut-out by Sonnet; "apply within N days" becomes edition date + N. Ads still unreadable stay in the review queue (never published as guesses).
+- KPPSC ad PDFs: 16k output tokens + `jsonArrayLoose`; if posts still cannot be read, the ad is listed once as "KPPSC Advertisement No. X (various posts)" with the date from its link title.
+- Diagnostics: run the `status` workflow (read-only) for jobs by source/status, AI spend, pages seen.
+
 ## Rules that must stay true
 - **Honesty:** a listing is "Verified" only when code confirmed it against the source. Never print "Unverified" on cards (shows source type instead: Official portal / Testing agency / Newspaper ad) and never claim verification that did not happen. The general how-to text is always labelled as general; the ad wins.
 - robots.txt respected, 1 req/s per host, no CAPTCHA/login/paywall/Cloudflare bypass. ETEA, OTS, PTS, NJP, Nawa-i-Waqt, Ausaf refuse GitHub servers → added by hand or by Kashif's daily Chrome task.
