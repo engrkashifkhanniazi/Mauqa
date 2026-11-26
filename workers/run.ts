@@ -1,3 +1,4 @@
+import { parsePaste } from "../src/lib/pasteParse";
 import { sql } from "drizzle-orm";
 import { db } from "../src/db";
 import { politeFetch, sha256 } from "../src/lib/fetcher";
@@ -16,6 +17,13 @@ import { parseFpscAd } from "../src/parsers/fpscPdf";
 import { extractPdfPosts, BudgetStop } from "../src/pipeline/paperAi";
 import type { ParseResult, ParsedJob } from "../src/parsers/types";
 
+/** When the posts inside a KPPSC advertisement PDF cannot be read, the advertisement itself is listed once:
+ *  "KPPSC Advertisement No. 10/2026 (various posts)" with the last date printed in its link title. */
+function kppscWhole<T extends { title: string; lastDate?: string | null }>(b: T): T {
+  const no = b.title.match(/advertisement\s*no\.?\s*([\d/]+)/i)?.[1];
+  const lastDate = b.lastDate ?? parsePaste(b.title)[0]?.lastDate ?? null;
+  return { ...b, title: no ? `KPPSC Advertisement No. ${no} (various posts)` : b.title, lastDate };
+}
 const SOURCES: Record<string, { name: string; url: string; parse: (h: string) => ParseResult }> = {
   ETEA: { name: "ETEA", url: "https://etea.online/", parse: parseEtea },
   KPPSC: { name: "KPPSC", url: "https://www.kppsc.gov.pk/advertisement", parse: parseKppsc },
@@ -69,10 +77,10 @@ async function runSource(key: string) {
             if (rows(await db().execute(sql`select 1 from raw_items where content_hash = ${pdf.hash!}`)).length > 0) { errors.push({ type: "info", message: `KPPSC ad PDF unchanged (${b.externalId})` }); continue; }
             if (!process.env.ANTHROPIC_API_KEY) { errors.push({ type: "info", message: `KPPSC PDF needs ANTHROPIC_API_KEY; kept for review (${b.externalId})` }); expanded.push(b); continue; }
             const posts = await extractPdfPosts(pdf.body!);
-            if (!posts.length) { errors.push({ type: "ai", message: `no posts read from ${b.officialUrl}; kept for review` }); expanded.push(b); continue; }
+            if (!posts.length) { errors.push({ type: "ai", message: `no posts read from ${b.officialUrl}; listed as one advertisement` }); expanded.push(kppscWhole(b)); continue; }
             posts.forEach((p, i) => expanded.push({ sourceKey: "KPPSC", externalId: `${b.externalId}/${i + 1}`, title: p.title, department: p.department ?? undefined, bps: p.bps, lastDate: p.last_date, officialUrl: b.officialUrl, applyUrl: b.applyUrl, files: b.files, needsAi: false, fieldsConfirmedAgainstSource: false, vacancies: p.vacancies, city: p.city, education: p.education, aiRead: true, aiConfidence: p.confidence }));
             if (!DRY) await db().execute(sql`insert into raw_items (source_id, url, content_hash, kind) values (${Number(sr.id)}, ${b.officialUrl}, ${pdf.hash!}, 'pdf') on conflict (content_hash) do nothing`);
-          } catch (e) { errors.push({ type: e instanceof BudgetStop ? "budget" : "pdf", message: String(e) }); expanded.push(b); }
+          } catch (e) { errors.push({ type: e instanceof BudgetStop ? "budget" : "pdf", message: String(e) }); expanded.push(kppscWhole(b)); }
           continue;
         }
         if (b.expand !== "fpsc-pdf") { expanded.push(b); continue; }

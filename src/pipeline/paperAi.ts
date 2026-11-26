@@ -6,6 +6,8 @@ import { db } from "@/db";
 import { costUsd } from "./budget";
 import { sha256 } from "@/lib/fetcher";
 import { cropAd } from "./adCrop";
+import { jsonArrayLoose } from "./jsonLoose";
+export { jsonArrayLoose };
 
 /** Default monthly cap (USD) used when CLAUDE_MONTHLY_BUDGET_USD is not set, so pasting only the API key is safe. */
 export const DEFAULT_CAP = 8;
@@ -37,11 +39,20 @@ async function ask(img: Buffer, prompt: string, maxTokens: number): Promise<stri
 }
 const json = (t: string, open: string, close: string) => { const a = t.indexOf(open), b = t.lastIndexOf(close); return a >= 0 && b > a ? JSON.parse(t.slice(a, b + 1)) : null; };
 
-/** Cheap first pass on the whole page: does it carry government job advertisements at all? */
+/** Cheap first pass: does the page carry any recruitment advertisement at all?
+ *  The page is checked as a top half and a bottom half at full resolution (a whole page would be shrunk by the API until small
+ *  Urdu print is unreadable, which made this check answer "no" for whole editions). Any doubt counts as "yes": a missed ad costs more than one extra read. */
 export async function pageHasJobAds(page: Buffer): Promise<boolean> {
-  const small = await sharp(page, { failOn: "none" }).resize({ width: 1400, withoutEnlargement: true }).jpeg({ quality: 70 }).toBuffer();
-  const t = await ask(small, 'Is this newspaper page carrying any government or public-sector job / recruitment advertisements (posts, BPS, last date to apply)? Answer ONLY JSON: {"has_job_ads": true|false}', 30);
-  try { return json(t, "{", "}")?.has_job_ads === true; } catch { return false; }
+  const meta = await sharp(page, { failOn: "none" }).metadata(); const W = meta.width ?? 0, H = meta.height ?? 0;
+  if (!W || !H) return true;
+  const half = Math.ceil(H * 0.55);
+  for (const top of [0, H - half]) {
+    const part = await sharp(page, { failOn: "none" }).extract({ left: 0, top, width: W, height: half }).resize({ width: 1500, withoutEnlargement: true }).jpeg({ quality: 78 }).toBuffer();
+    const t = await ask(part, 'This is half of a Pakistani (Urdu or English) newspaper page. Is there ANY job / recruitment / vacancy advertisement on it (for example words like "اسامیاں", "ملازمت", "ضرورت", "بھرتی", "Career Opportunity", "Jobs", "Vacancies", "Situation Vacant", posts with BPS or a last date to apply), from any employer? Answer ONLY JSON: {"has_job_ads": true|false}', 60);
+    let v: unknown = null; try { v = json(t, "{", "}")?.has_job_ads; } catch { v = null; }
+    if (v !== false) return true;
+  }
+  return false;
 }
 
 const PROMPT = `This is one part of a Pakistani newspaper page. List every GOVERNMENT or public-sector recruitment advertisement visible in it (ignore results, admit cards, tenders, private companies, matrimonial and other ads).
@@ -73,10 +84,10 @@ export async function extractPdfPosts(pdf: Uint8Array): Promise<PaperAdT[]> {
   if (pdf.length > 20 * 1024 * 1024) return [];
   if (!(await spent() + 0.05 < cap())) throw new BudgetStop("monthly AI cap reached");
   const client = new Anthropic();
-  const res = await client.messages.create({ model: MODEL, max_tokens: 4000, messages: [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: Buffer.from(pdf).toString("base64") } }, { type: "text", text: PDF_PROMPT }] }] });
+  const res = await client.messages.create({ model: MODEL, max_tokens: 16000, messages: [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: Buffer.from(pdf).toString("base64") } }, { type: "text", text: PDF_PROMPT }] }] });
   const cost = costUsd(MODEL, res.usage.input_tokens, res.usage.output_tokens);
   await db().execute(sql`insert into ai_calls (content_hash, model, tokens_in, tokens_out, cost_usd, ok) values (${sha256(pdf)}, ${MODEL}, ${res.usage.input_tokens}, ${res.usage.output_tokens}, ${cost}, true)`);
-  const arr = json(res.content.map((b) => (b.type === "text" ? b.text : "")).join(""), "[", "]");
+  const arr = jsonArrayLoose(res.content.map((b) => (b.type === "text" ? b.text : "")).join(""));
   const out: PaperAdT[] = [];
   if (Array.isArray(arr)) for (const a of arr) { const p = PaperAd.safeParse(a); if (p.success && p.data.is_government_recruitment) out.push(p.data); }
   return out;
