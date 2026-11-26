@@ -24,17 +24,18 @@ export const PaperAd = z.object({
   education: z.string().nullable(), city: z.string().nullable(), province: z.string().nullable(),
   last_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(), is_government_recruitment: z.boolean(), confidence: z.number().min(0).max(1),
   box: z.array(z.number().min(0).max(1)).length(4).nullable().optional(),
+  last_date_days: z.number().int().min(1).max(90).nullable().optional(),
 });
 export type PaperAdT = z.infer<typeof PaperAd>;
 /** An extracted ad, plus the picture of that ad cut from the page (only when the box looked trustworthy). */
 export type PaperAdWithCrop = PaperAdT & { crop?: Buffer };
 
-async function ask(img: Buffer, prompt: string, maxTokens: number): Promise<string> {
+async function ask(img: Buffer, prompt: string, maxTokens: number, model: string = MODEL): Promise<string> {
   if (!(await spent() + 0.01 < cap())) throw new BudgetStop("monthly AI cap reached");
   const client = new Anthropic();
-  const res = await client.messages.create({ model: MODEL, max_tokens: maxTokens, messages: [{ role: "user", content: [{ type: "image", source: { type: "base64", media_type: "image/jpeg", data: img.toString("base64") } }, { type: "text", text: prompt }] }] });
-  const cost = costUsd(MODEL, res.usage.input_tokens, res.usage.output_tokens);
-  await db().execute(sql`insert into ai_calls (content_hash, model, tokens_in, tokens_out, cost_usd, ok) values (${sha256(img)}, ${MODEL}, ${res.usage.input_tokens}, ${res.usage.output_tokens}, ${cost}, true)`);
+  const res = await client.messages.create({ model, max_tokens: maxTokens, messages: [{ role: "user", content: [{ type: "image", source: { type: "base64", media_type: "image/jpeg", data: img.toString("base64") } }, { type: "text", text: prompt }] }] });
+  const cost = costUsd(model, res.usage.input_tokens, res.usage.output_tokens);
+  await db().execute(sql`insert into ai_calls (content_hash, model, tokens_in, tokens_out, cost_usd, ok) values (${sha256(img)}, ${model}, ${res.usage.input_tokens}, ${res.usage.output_tokens}, ${cost}, true)`);
   return res.content.map((b) => (b.type === "text" ? b.text : "")).join("");
 }
 const json = (t: string, open: string, close: string) => { const a = t.indexOf(open), b = t.lastIndexOf(close); return a >= 0 && b > a ? JSON.parse(t.slice(a, b + 1)) : null; };
@@ -56,12 +57,20 @@ export async function pageHasJobAds(page: Buffer): Promise<boolean> {
 }
 
 const PROMPT = `This is one part of a Pakistani newspaper page. List every GOVERNMENT or public-sector recruitment advertisement visible in it (ignore results, admit cards, tenders, private companies, matrimonial and other ads).
-Return ONLY a JSON array. Each item: {"title": post/project name in English, "department": hiring organisation in English, "vacancies": total posts integer or null, "bps": integer 1-22 or null, "education": minimum qualification in short English or null, "city": string or null, "province": string or null, "last_date": "YYYY-MM-DD" or null, "is_government_recruitment": true, "confidence": 0-1, "box": [left, top, right, bottom]}.
+Return ONLY a JSON array. Each item: {"title": post/project name in English, "department": hiring organisation in English, "vacancies": total posts integer or null, "bps": integer 1-22 or null, "education": minimum qualification in short English or null, "city": string or null, "province": string or null, "last_date": "YYYY-MM-DD" or null, "last_date_days": if no date is printed but the ad says apply within N days, N, else null, "is_government_recruitment": true, "confidence": 0-1, "box": [left, top, right, bottom]}.
 "box" is the rectangle around the WHOLE advertisement as fractions 0 to 1 of this part (left and top first). Use null if you cannot place it exactly.
 Write facts in your own short words. Use null for anything not printed. Never guess a date. If an ad is cut off at the edge of this part, skip it. If there are none, return [].`;
 
-/** 2x2 overlapping tiles keep fine print readable. Facts are extracted; a cropped picture of each ad is kept only when its box is trustworthy. */
-export async function extractPageAds(page: Buffer): Promise<PaperAdWithCrop[]> {
+const STRONG = "claude-sonnet-5-5";
+const ONE_AD = `This picture is ONE Pakistani newspaper advertisement (Urdu or English). If it is a GOVERNMENT or public-sector recruitment advertisement, read it carefully and return ONLY JSON:
+{"title": main post name(s) in English (e.g. "Junior Clerk, Driver and Naib Qasid"), "department": hiring organisation in English, "vacancies": total posts integer or null, "bps": highest BPS 1-22 or null, "education": minimum qualification in short English or null, "city": string or null, "province": string or null, "last_date": "YYYY-MM-DD" or null, "last_date_days": if no date is printed but it says apply within N days, N, else null, "is_government_recruitment": true|false, "confidence": 0-1}
+Write facts in your own short words. Use null for anything not printed. Never guess a date. If you cannot read the post names, set confidence below 0.5.`;
+const addDays = (ymd: string, n: number) => { const d = new Date(ymd + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+
+/** 2x2 overlapping tiles keep fine print readable. Facts are extracted; a cropped picture of each ad is kept only when its box is trustworthy.
+ *  An ad that came back unclear (low confidence or no date) gets a second, careful read of its own cut-out by a stronger model.
+ *  "Apply within N days" becomes a date counted from the edition date. */
+export async function extractPageAds(page: Buffer, editionYmd?: string): Promise<PaperAdWithCrop[]> {
   const meta = await sharp(page, { failOn: "none" }).metadata(); const W = meta.width ?? 0, H = meta.height ?? 0;
   if (!W || !H) return [];
   const tw = Math.round(W * 0.56), th = Math.round(H * 0.56); const out: PaperAdWithCrop[] = [];
@@ -69,7 +78,22 @@ export async function extractPageAds(page: Buffer): Promise<PaperAdWithCrop[]> {
     const tile = await sharp(page, { failOn: "none" }).extract({ left: x, top: y, width: tw, height: th }).resize({ width: 1800, withoutEnlargement: true }).jpeg({ quality: 82 }).toBuffer();
     try {
       const arr = json(await ask(tile, PROMPT, 1500), "[", "]");
-      if (Array.isArray(arr)) for (const a of arr) { const p = PaperAd.safeParse(a); if (p.success && p.data.is_government_recruitment) out.push({ ...p.data, crop: p.data.confidence >= 0.7 ? await cropAd(page, { x, y, w: tw, h: th }, p.data.box).catch(() => undefined) : undefined }); }
+      if (!Array.isArray(arr)) continue;
+      for (const a of arr) {
+        const p = PaperAd.safeParse(a); if (!p.success || !p.data.is_government_recruitment) continue;
+        let ad: PaperAdT = p.data;
+        const cut = await cropAd(page, { x, y, w: tw, h: th }, ad.box).catch(() => undefined);
+        if (cut && (ad.confidence < 0.85 || (!ad.last_date && !ad.last_date_days))) {
+          try {
+            const big = await sharp(cut, { failOn: "none" }).resize({ width: 1400, kernel: "lanczos3", withoutEnlargement: false }).jpeg({ quality: 90 }).toBuffer();
+            const again = PaperAd.safeParse({ ...json(await ask(big, ONE_AD, 700, STRONG), "{", "}"), box: ad.box });
+            if (again.success && again.data.confidence >= ad.confidence) ad = again.data;
+            if (again.success && !again.data.is_government_recruitment) continue;
+          } catch (e) { if (e instanceof BudgetStop) throw e; }
+        }
+        if (!ad.last_date && ad.last_date_days && editionYmd) ad = { ...ad, last_date: addDays(editionYmd, ad.last_date_days) };
+        out.push({ ...ad, crop: ad.confidence >= 0.7 ? cut : undefined });
+      }
     } catch (e) { if (e instanceof BudgetStop) throw e; }
   }
   return out;

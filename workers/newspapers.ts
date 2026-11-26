@@ -78,11 +78,11 @@ async function main() {
         try { const r = await pageImage(paper, t, n); if (!r) break; img = r.body; } catch { break; }
         pages++;
         const hash = sha256(img);
-        if (rows(await db().execute(sql`select 1 from raw_items where content_hash = ${hash} and kind = 'page2'`)).length) continue; // page already checked by the current page check (kind "page" = old check, read again)
+        if (rows(await db().execute(sql`select 1 from raw_items where content_hash = ${hash} and kind = 'page3'`)).length) continue; // page already checked by the current page check (kind "page" = old check, read again)
         try {
           const buf = Buffer.from(img);
-          if (!(await pageHasJobAds(buf))) { if (!DRY) await db().execute(sql`insert into raw_items (source_id, url, content_hash, kind) values (${Number(sr.id)}, ${paper.pageUrl(t, n)}, ${hash}, 'page2') on conflict (content_hash) do update set kind = 'page2'`); continue; }
-          const ads = await extractPageAds(buf); adsFound += ads.length;
+          if (!(await pageHasJobAds(buf))) { if (!DRY) await db().execute(sql`insert into raw_items (source_id, url, content_hash, kind) values (${Number(sr.id)}, ${paper.pageUrl(t, n)}, ${hash}, 'page3') on conflict (content_hash) do update set kind = 'page3'`); continue; }
+          const ads = await extractPageAds(buf, YMD(t)); adsFound += ads.length;
           const url = paper.pageUrl(t, n);
           for (const a of ads) {
             const dec = evaluate({ regionText: [a.department, a.city].filter(Boolean).join(" "), title: a.title, officialUrl: url, lastDate: a.last_date, aiUsed: true, aiConfidence: a.confidence });
@@ -94,7 +94,7 @@ async function main() {
             if (ins && a.crop) await saveAdBuffer(Number(ins.id), a.crop).catch(() => undefined); // picture is a bonus: never block the post
             if (ins) { if (dec.action === "publish") published++; else { queued++; await db().execute(sql`insert into review_queue (job_id, reason) values (${Number(ins.id)}, ${dec.reasons.join("; ")})`); } }
           }
-          if (!DRY) await db().execute(sql`insert into raw_items (source_id, url, content_hash, kind) values (${Number(sr.id)}, ${url}, ${hash}, 'page2') on conflict (content_hash) do update set kind = 'page2'`);
+          if (!DRY) await db().execute(sql`insert into raw_items (source_id, url, content_hash, kind) values (${Number(sr.id)}, ${url}, ${hash}, 'page3') on conflict (content_hash) do update set kind = 'page3'`);
         } catch (e) { if (e instanceof BudgetStop) { console.log("stopped:", e.message); return; } console.log(`page ${n} error:`, (e as Error).message); }
       }
       console.log(`${paper.label} ${d}: pages=${pages} ads=${adsFound} published=${published} queued=${queued}`);
